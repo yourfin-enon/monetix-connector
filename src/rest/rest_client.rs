@@ -2,13 +2,12 @@ use crate::rest::config::MonetixApiConfig;
 use crate::rest::endpoints::MonetixEndpoint;
 use crate::rest::errors::Error;
 use crate::rest::models::{
-    MonetixBuyAssetRequest, MonetixBuyAssetResponse, MonetixPaymentConfigResponse,
-    MonetixPaymentMethodsRequest, MonetixPaymentMethodsResponse, MonetixPlatformConfigResponse,
-    MonetixRatesResponse, GetQuoteRequest, GetQuoteResponse,
+    MonetixCreateInvoicePaymentRequest, MonetixCreateInvoicePaymentResponse, MonetixCustomerModel,
+    MonetixGeneralModel, MonetixPaymentModel,
 };
-use crate::rest::request_signer::MonetixRequestSigner;
+use crate::rest::request_signer::{MonetixRequest, MonetixRequestSigner};
 use error_chain::bail;
-use reqwest::header::{HeaderMap, HeaderName, HeaderValue};
+use reqwest::header::{HeaderMap, HeaderValue};
 use reqwest::Response;
 use reqwest::StatusCode;
 use serde::de::DeserializeOwned;
@@ -17,132 +16,83 @@ use std::collections::HashMap;
 #[derive(Clone)]
 pub struct MonetixRestClient {
     signer: MonetixRequestSigner,
-    access_key: String,
+    _api_token: String,
     host: String,
     inner_client: reqwest::Client,
-    partner_id: String,
+    project_id: u32,
+    callback_url: String,
 }
 
 impl MonetixRestClient {
     pub fn new(
-        partner_id: String,
+        project_id: u32,
         secret_key: String,
-        access_key: String,
+        api_token: String,
+        callback_url: String,
         config: MonetixApiConfig,
     ) -> Self {
         Self {
             signer: MonetixRequestSigner::new(secret_key),
-            access_key,
+            _api_token: api_token,
             host: config.rest_api_host,
             inner_client: reqwest::Client::new(),
-            partner_id,
+            project_id,
+            callback_url,
         }
     }
 
-    pub async fn get_quote(
+    pub async fn create_invoice_payment(
         &self,
-        amount: impl Into<String>,
-        crypto_asset: impl Into<String>,
-        fiat_asset: impl Into<String>,
-        payment_method: impl Into<String>,
-        region: impl Into<String>,
-    ) -> Result<GetQuoteResponse, Error> {
-        let request = GetQuoteRequest {
-            amount: amount.into(),
-            crypto: crypto_asset.into(),
-            fiat: fiat_asset.into(),
-            partner_id: self.partner_id.clone(),
-            payment: payment_method.into(),
-            region: region.into(),
+        payment_id: impl Into<String>,
+        customer_id: impl Into<String>,
+        payment: MonetixPaymentModel,
+    ) -> Result<MonetixCreateInvoicePaymentResponse, Error> {
+        let mut request = MonetixCreateInvoicePaymentRequest {
+            general: MonetixGeneralModel {
+                project_id: self.project_id,
+                payment_id: payment_id.into(),
+                merchant_callback_url: Some(self.callback_url.clone()),
+                signature: "".to_string(),
+            },
+            customer: MonetixCustomerModel {
+                id: customer_id.into(),
+                country: None,
+                city: None,
+                state: None,
+                phone: None,
+                day_of_birth: None,
+                birthplace: None,
+                first_name: None,
+                middle_name: None,
+                last_name: None,
+                language: None,
+                address: None,
+                ssn: None,
+                billing: None,
+            },
+            payment,
+            return_url: None,
+            card_operation_type: None,
+            send_email: false,
         };
-        let query_string = serde_qs::to_string(&request).unwrap(); // todo: handle err
-        let resp: GetQuoteResponse = self
-            .get_signed(MonetixEndpoint::Quotes, Some(&query_string))
-            .await?;
+        let sign = self.signer.generate_sign(&request);
+        request.general.signature = sign;
 
-        Ok(resp)
+        let endpoint = MonetixEndpoint::CreateInvoicePayment;
+        let result = self.post(endpoint, request).await;
+
+        result
     }
 
-    pub async fn get_rates(&self) -> Result<MonetixRatesResponse, Error> {
-        let resp: MonetixRatesResponse = self.get_signed(MonetixEndpoint::Rates, None).await?;
-
-        Ok(resp)
-    }
-
-    pub async fn get_payment_methods(
-        &self,
-        currency_ico: impl Into<String>,
-        country_code: impl Into<String>,
-    ) -> Result<MonetixPaymentMethodsResponse, Error> {
-        let request = MonetixPaymentMethodsRequest {
-            currency_iso: currency_ico.into(),
-            country_code: country_code.into(),
-        };
-        let query = serde_qs::to_string(&request).unwrap();
-        let resp = self
-            .get_signed(MonetixEndpoint::PaymentMethods, Some(&query))
-            .await?;
-
-        Ok(resp)
-    }
-
-    pub async fn get_payment_config(&self) -> Result<MonetixPaymentConfigResponse, Error> {
-        let resp: MonetixPaymentConfigResponse =
-            self.get_signed(MonetixEndpoint::PaymentConfig, None).await?;
-
-        Ok(resp)
-    }
-
-    pub async fn buy_asset(
-        &self,
-        params: MonetixBuyAssetParams,
-    ) -> Result<MonetixBuyAssetResponse, Error> {
-        let request = MonetixBuyAssetRequest {
-            amount: params.amount,
-            crypto: params.crypto,
-            fiat: params.fiat,
-            order_custom_id: params.order_custom_id,
-            partner_account_id: self.partner_id.clone(),
-            payment_method: params.payment_method.to_string(),
-            redirect_url: params.redirect_url,
-            region: params.region,
-            wallet_address: params.wallet_address,
-        };
-        let query_params = serde_qs::to_string(&request).unwrap(); // todo: handle err
-        let endpoint = MonetixEndpoint::BuyAsset;
-        let url = format!("{}{}?{}", self.host, String::from(&endpoint), query_params);
-        let sign = self.signer.generate_sign(&endpoint);
-        let client = &self.inner_client;
-        let headers = self.build_headers(Some(&sign));
-        let response = client.get(url.as_str()).headers(headers).send().await?;
-
-        if response.status() != StatusCode::OK {
-            return self.handler(response, None, &url).await;
-        }
-
-        Ok(MonetixBuyAssetResponse {
-            redirect_url: response.url().to_string(),
-        })
-    }
-
-    pub async fn get_platform_config(&self) -> Result<MonetixPlatformConfigResponse, Error> {
-        let resp: MonetixPlatformConfigResponse = self
-            .get_signed(MonetixEndpoint::PlatformConfig, None)
-            .await?;
-
-        Ok(resp)
-    }
-
-    pub async fn post_signed<T: DeserializeOwned>(
+    pub async fn post<R: MonetixRequest, T: DeserializeOwned>(
         &self,
         endpoint: MonetixEndpoint,
-        request_json: String,
+        request: R,
     ) -> Result<T, Error> {
         let url: String = format!("{}{}", self.host, String::from(&endpoint));
-        let sign = self.signer.generate_sign(&endpoint);
-
-        let headers = self.build_headers(Some(&sign));
+        let headers = self.build_headers();
         let client = &self.inner_client;
+        let request_json = serde_json::to_string(&request)?;
         let response = client
             .post(&url)
             .body(request_json.clone())
@@ -153,49 +103,13 @@ impl MonetixRestClient {
         self.handler(response, Some(request_json), &url).await
     }
 
-    pub async fn get_signed<T: DeserializeOwned>(
-        &self,
-        endpoint: MonetixEndpoint,
-        query_params: Option<&str>,
-    ) -> Result<T, Error> {
-        let url: String = if let Some(query_params) = query_params {
-            format!("{}{}?{}", self.host, String::from(&endpoint), query_params)
-        } else {
-            format!("{}{}", self.host, String::from(&endpoint))
-        };
-        let sign = self.signer.generate_sign(&endpoint);
-
-        let client = &self.inner_client;
-        let headers = self.build_headers(Some(&sign));
-        let response = client.get(url.as_str()).headers(headers).send().await?;
-
-        self.handler(response, None, &url).await
-    }
-
-    fn build_headers(&self, sign: Option<&str>) -> HeaderMap {
+    fn build_headers(&self) -> HeaderMap {
         let mut custom_headers = HeaderMap::new();
 
         custom_headers.insert(
-            "access-control-allow-headers",
-            HeaderValue::from_str("Accept").unwrap(),
+            "content-type",
+            HeaderValue::from_str("application/json").unwrap(),
         );
-
-        custom_headers.insert(
-            "X-merchantid",
-            HeaderValue::from_str(self.partner_id.as_str()).unwrap(),
-        );
-
-        custom_headers.insert(
-            HeaderName::from_static("api-key"),
-            HeaderValue::from_str(&self.access_key).unwrap(),
-        );
-
-        if let Some(sign) = sign {
-            custom_headers.insert(
-                HeaderName::from_static("signature"),
-                HeaderValue::from_str(sign).unwrap(),
-            );
-        }
 
         custom_headers
     }
@@ -270,16 +184,4 @@ impl MonetixRestClient {
             }
         }
     }
-}
-
-#[derive(Debug)]
-pub struct MonetixBuyAssetParams {
-    pub amount: String,
-    pub crypto: String,
-    pub fiat: String,
-    pub order_custom_id: String,
-    pub payment_method: String,
-    pub redirect_url: String,
-    pub region: String,
-    pub wallet_address: String,
 }
