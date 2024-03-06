@@ -1,25 +1,36 @@
+use std::fmt::format;
 use serde::{Deserialize, Serialize};
-use crate::rest::request_signer::MonetixRequest;
+use crate::rest::request_signer::{MonetixRequest, MonetixSignPart};
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct MonetixCreateInvoicePaymentRequest {
-    #[serde(rename = "general")]
     pub general: MonetixGeneralModel,
-    #[serde(rename = "customer")]
     pub customer: MonetixCustomerModel,
-    #[serde(rename = "payment")]
     pub payment: MonetixPaymentModel,
-    #[serde(rename = "return_url")]
     pub return_url: Option<MonetixReturnUrlModel>,
-    #[serde(rename = "card_operation_type")]
-    pub card_operation_type: Option<String>,
-    #[serde(rename = "send_email")]
+    /// Card operation type for customer to pay. Default is sale.
+    //// Allowed values: sale, auth
+    pub card_operation_type: String,
     pub send_email: bool,
 }
 
 impl MonetixRequest for MonetixCreateInvoicePaymentRequest {
     fn to_sign_string(&self) -> String {
-        String::from("todo")
+        let mut parts = Vec::with_capacity(100);
+        parts.push(format!("card_operation_type:{}", self.card_operation_type));
+        parts.push(format!("send_email:{}", self.send_email as i32));
+
+        self.general.add_sign_parts_sorted("general", &mut parts);
+        self.customer.add_sign_parts_sorted("customer", &mut parts);
+        self.payment.add_sign_parts_sorted("payment", &mut parts);
+
+        if let Some(return_url) = self.return_url.as_ref() {
+            return_url.add_sign_parts_sorted("return_url", &mut parts);
+        }
+
+        parts.sort();
+
+        parts.join(";")
     }
 }
 
@@ -43,6 +54,21 @@ pub struct MonetixGeneralModel {
     pub signature: String,
 }
 
+impl MonetixSignPart for MonetixGeneralModel {
+    fn add_sign_parts_sorted(&self, prefix: &str, targer: &mut Vec<String>) {
+        let mut parts = Vec::with_capacity(3);
+
+        if let Some(merchant_callback_url) = self.merchant_callback_url.as_ref() {
+            parts.push(format!("{}:merchant_callback_url:{}", prefix, merchant_callback_url));
+        }
+
+        parts.push(format!("{}:project_id:{}", prefix, self.project_id));
+        parts.push(format!("{}:payment_id:{}", prefix, self.payment_id));
+
+        targer.append(&mut parts);
+    }
+}
+
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct MonetixCustomerModel {
     pub id: String,
@@ -63,7 +89,17 @@ pub struct MonetixCustomerModel {
     pub address: Option<String>,
     /// The last 4 digits of the social security number of US
     pub ssn: Option<i32>,
-    pub billing: Option<MonetixCustomerBillingModel>
+    pub billing: Option<MonetixCustomerBillingModel>,
+}
+
+impl MonetixSignPart for MonetixCustomerModel {
+    fn add_sign_parts_sorted(&self, prefix: &str, targer: &mut Vec<String>) {
+        let mut parts = Vec::with_capacity(1);
+        parts.push(format!("{}:{}", prefix, self.id));        
+        //todo: add other fields
+
+        targer.append(&mut parts);
+    }
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -74,6 +110,12 @@ pub struct MonetixCustomerBillingModel {
     pub city: Option<String>,
     pub address: Option<String>,
     pub postal: Option<String>,
+}
+
+impl MonetixSignPart for MonetixCustomerBillingModel {
+    fn add_sign_parts_sorted(&self, prefix: &str, targer: &mut Vec<String>) {
+        
+    }
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -97,7 +139,20 @@ pub struct MonetixPaymentModel {
     pub moto_type: Option<i32>,
     // The ID of the PS, which opens by default without the possibility of selecting another PS.
     pub force_method: Option<String>,
+}
 
+impl MonetixSignPart for MonetixPaymentModel {
+    fn add_sign_parts_sorted(&self, prefix: &str, targer: &mut Vec<String>) {
+        let mut parts = Vec::with_capacity(3);
+
+        parts.push(format!("{}:amount:{}", prefix, self.amount));
+        parts.push(format!("{}:best_before:{}", prefix, self.best_before));
+        parts.push(format!("{}:currency:{}", prefix, self.currency));
+        
+        // todo: add other fields
+
+        targer.append(&mut parts);
+    }
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -106,4 +161,9 @@ pub struct MonetixReturnUrlModel {
     pub decline: Option<String>,
     #[serde(rename = "return")]
     pub return_url: Option<String>,
+}
+
+impl MonetixSignPart for MonetixReturnUrlModel {
+    fn add_sign_parts_sorted(&self, prefix: &str, targer: &mut Vec<String>) {
+    }
 }

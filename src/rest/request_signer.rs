@@ -18,6 +18,10 @@ pub trait MonetixRequest: Serialize {
     fn to_sign_string(&self) -> String;
 }
 
+pub trait MonetixSignPart {
+    fn add_sign_parts_sorted(&self, prefix: &str, targer: &mut Vec<String>);
+}
+
 impl MonetixRequestSigner {
     pub fn generate_sign<T: MonetixRequest>(&self, data: &T) -> String {
         let data = data.to_sign_string();
@@ -37,12 +41,8 @@ mod tests {
     use super::*;
 
     #[test]
-    fn generate_sign() {
-
-    }
+    fn generate_sign() {}
 
     #[test]
-    fn generate_sign_with_body() {
-
-    }
+    fn generate_sign_with_body() {}
 }
