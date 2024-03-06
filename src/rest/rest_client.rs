@@ -72,7 +72,7 @@ impl MonetixRestClient {
             },
             payment,
             return_url: None,
-            card_operation_type: None,
+            card_operation_type: "sale".to_string(),
             send_email: false,
         };
         let sign = self.signer.generate_sign(&request);

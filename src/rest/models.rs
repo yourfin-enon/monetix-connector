@@ -1,4 +1,3 @@
-use std::fmt::format;
 use serde::{Deserialize, Serialize};
 use crate::rest::request_signer::{MonetixRequest, MonetixSignPart};
 
@@ -113,7 +112,7 @@ pub struct MonetixCustomerBillingModel {
 }
 
 impl MonetixSignPart for MonetixCustomerBillingModel {
-    fn add_sign_parts_sorted(&self, prefix: &str, targer: &mut Vec<String>) {
+    fn add_sign_parts_sorted(&self, _prefix: &str, _targer: &mut Vec<String>) {
         
     }
 }
@@ -164,6 +163,6 @@ pub struct MonetixReturnUrlModel {
 }
 
 impl MonetixSignPart for MonetixReturnUrlModel {
-    fn add_sign_parts_sorted(&self, prefix: &str, targer: &mut Vec<String>) {
+    fn add_sign_parts_sorted(&self, _prefix: &str, _targer: &mut Vec<String>) {
     }
 }
