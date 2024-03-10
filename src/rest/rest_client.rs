@@ -56,19 +56,19 @@ impl MonetixRestClient {
             },
             customer: MonetixCustomerModel {
                 id: customer_id.into(),
-                country: None,
-                city: None,
-                state: None,
-                phone: None,
-                day_of_birth: None,
-                birthplace: None,
-                first_name: None,
-                middle_name: None,
-                last_name: None,
-                language: None,
-                address: None,
-                ssn: None,
-                billing: None,
+                //country: None,
+                //city: None,
+                //state: None,
+                //phone: None,
+                //day_of_birth: None,
+                //birthplace: None,
+                //first_name: None,
+                //middle_name: None,
+                //last_name: None,
+                //language: None,
+                //address: None,
+                //ssn: None,
+                //billing: None,
             },
             payment,
             return_url: None,
@@ -76,6 +76,10 @@ impl MonetixRestClient {
             send_email: false,
         };
         let sign = self.signer.generate_sign(&request);
+        
+        println!("{:?}", request);
+        println!("{:?}", sign);
+
         request.general.signature = sign;
 
         let endpoint = MonetixEndpoint::CreateInvoicePayment;
@@ -93,6 +97,9 @@ impl MonetixRestClient {
         let headers = self.build_headers();
         let client = &self.inner_client;
         let request_json = serde_json::to_string(&request)?;
+        
+        println!("{}", request_json);
+        
         let response = client
             .post(&url)
             .body(request_json.clone())

@@ -25,6 +25,8 @@ impl MonetixRequest for MonetixCreateInvoicePaymentRequest {
 
         if let Some(return_url) = self.return_url.as_ref() {
             return_url.add_sign_parts_sorted("return_url", &mut parts);
+        } else {
+            parts.push("return_url:".to_string());
         }
 
         parts.sort();
@@ -71,24 +73,24 @@ impl MonetixSignPart for MonetixGeneralModel {
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct MonetixCustomerModel {
     pub id: String,
-    /// customer country in ISO 3166-1 alpha-2 format
-    pub country: Option<String>,
-    pub city: Option<String>,
-    pub state: Option<String>,
-    /// Phone number of the customer that must have from 4 to 24 digits
-    pub phone: Option<String>,
-    /// customer day of birth must have format DD-MM-YYYY
-    pub day_of_birth: Option<String>,
-    pub birthplace: Option<String>,
-    pub first_name: Option<String>,
-    pub middle_name: Option<String>,
-    pub last_name: Option<String>,
-    /// user language (locale), for example en_US
-    pub language: Option<String>,
-    pub address: Option<String>,
-    /// The last 4 digits of the social security number of US
-    pub ssn: Option<i32>,
-    pub billing: Option<MonetixCustomerBillingModel>,
+    // customer country in ISO 3166-1 alpha-2 format
+    //pub country: Option<String>,
+    //pub city: Option<String>,
+    //pub state: Option<String>,
+    // Phone number of the customer that must have from 4 to 24 digits
+    //pub phone: Option<String>,
+    // customer day of birth must have format DD-MM-YYYY
+    //pub day_of_birth: Option<String>,
+    //pub birthplace: Option<String>,
+    //pub first_name: Option<String>,
+    //pub middle_name: Option<String>,
+    //pub last_name: Option<String>,
+    // user language (locale), for example en_US
+    //pub language: Option<String>,
+    //pub address: Option<String>,
+    // The last 4 digits of the social security number of US
+    //pub ssn: Option<i32>,
+    //pub billing: Option<MonetixCustomerBillingModel>,
 }
 
 impl MonetixSignPart for MonetixCustomerModel {
@@ -135,9 +137,9 @@ pub struct MonetixPaymentModel {
     /// Mail Order / Telephone Order payment type:
     /// 0 - not MO/TO payment, 1 - Mail Order, 2 - Telephone Order
     /// Default: 0
-    pub moto_type: Option<i32>,
+    pub moto_type: i32,
     // The ID of the PS, which opens by default without the possibility of selecting another PS.
-    pub force_method: Option<String>,
+    //pub force_method: Option<String>,
 }
 
 impl MonetixSignPart for MonetixPaymentModel {
@@ -147,7 +149,7 @@ impl MonetixSignPart for MonetixPaymentModel {
         parts.push(format!("{}:amount:{}", prefix, self.amount));
         parts.push(format!("{}:best_before:{}", prefix, self.best_before));
         parts.push(format!("{}:currency:{}", prefix, self.currency));
-        
+
         // todo: add other fields
 
         targer.append(&mut parts);

@@ -60,6 +60,7 @@ mod tests {
         };
         let request = TestRequest {};
         let sign = signer.generate_sign(&request);
+        
         assert_eq!(sign, "277e6a06abad45e05a5c3391eb42cd3d89453d187a5e4c0268f03b01ab4c54369c1726b00d3064881cfaf6328d85cd03b5b0de209577c69a55352d8ef7ace97e");
     }
 
@@ -74,19 +75,19 @@ mod tests {
             },
             customer: MonetixCustomerModel {
                 id: "customer_id".into(),
-                country: None,
-                city: None,
-                state: None,
-                phone: None,
-                day_of_birth: None,
-                birthplace: None,
-                first_name: None,
-                middle_name: None,
-                last_name: None,
-                language: None,
-                address: None,
-                ssn: None,
-                billing: None,
+                //country: None,
+                //city: None,
+                //state: None,
+                //phone: None,
+                //day_of_birth: None,
+                //birthplace: None,
+                //first_name: None,
+                //middle_name: None,
+                //last_name: None,
+                //language: None,
+                //address: None,
+                //ssn: None,
+                //billing: None,
             },
             payment: MonetixPaymentModel {
                 amount: 1000,
@@ -94,8 +95,8 @@ mod tests {
                 description: None,
                 extra_param: None,
                 best_before: "3467".to_string(),
-                moto_type: None,
-                force_method: None,
+                moto_type: 0,
+                //force_method: None,
             },
             return_url: None,
             card_operation_type: "sale".to_string(),
