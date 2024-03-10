@@ -1,7 +1,6 @@
 use ring::hmac;
 use serde::Serialize;
 use std::fmt::Write;
-use std::io::Read;
 
 #[derive(Debug, Clone)]
 pub struct MonetixRequestSigner {
