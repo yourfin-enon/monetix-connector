@@ -68,9 +68,9 @@ mod tests {
     fn to_sign_string() {
         let request = MonetixCreateInvoicePaymentRequest {
             general: MonetixGeneralModel {
-                project_id: 0,
+                project_id: 1000,
                 payment_id: "payment_id".into(),
-                merchant_callback_url: Some("self.callback_url.clone()".into()),
+                merchant_callback_url: Some("https//google.com".into()),
                 signature: "".to_string(),
             },
             customer: MonetixCustomerModel {
@@ -92,8 +92,8 @@ mod tests {
             payment: MonetixPaymentModel {
                 amount: 1000,
                 currency: "USD".to_string(),
-                description: None,
-                extra_param: None,
+                description: Some("description".to_string()),
+                extra_param: Some("extra_param".to_string()),
                 best_before: "3467".to_string(),
                 moto_type: 0,
                 //force_method: None,
@@ -106,10 +106,11 @@ mod tests {
         println!("json: {}", json);
 
         let signer = MonetixRequestSigner {
-            secret_key: "fdsakjjfdslajfdasjkjfsd".to_string(),
+            secret_key: "123".to_string(),
         };
         let sign_string = request.to_sign_string();
         println!("sign_string: {}", sign_string);
+        
         let sign = signer.generate_sign(&request);
         println!("sign: {}", sign);
     }

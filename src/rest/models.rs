@@ -96,7 +96,7 @@ pub struct MonetixCustomerModel {
 impl MonetixSignPart for MonetixCustomerModel {
     fn add_sign_parts_sorted(&self, prefix: &str, targer: &mut Vec<String>) {
         let mut parts = Vec::with_capacity(1);
-        parts.push(format!("{}:{}", prefix, self.id));        
+        parts.push(format!("{}:id:{}", prefix, self.id));        
         //todo: add other fields
 
         targer.append(&mut parts);
