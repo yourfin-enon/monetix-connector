@@ -149,8 +149,21 @@ impl MonetixSignPart for MonetixPaymentModel {
         parts.push(format!("{}:amount:{}", prefix, self.amount));
         parts.push(format!("{}:best_before:{}", prefix, self.best_before));
         parts.push(format!("{}:currency:{}", prefix, self.currency));
+        
+        if let Some(description) = self.description.as_ref() {
+            parts.push(format!("{}:description:{}", prefix, description));
+        } else {
+            parts.push(format!("{}:description:", prefix));
+        }
 
-        // todo: add other fields
+        if let Some(extra_param) = self.extra_param.as_ref() {
+            parts.push(format!("{}:extra_param:{}", prefix, extra_param));
+
+        } else {
+            parts.push(format!("{}:extra_param:", prefix));
+        }
+
+        parts.push(format!("{}:moto_type:{}", prefix, self.moto_type));
 
         targer.append(&mut parts);
     }
