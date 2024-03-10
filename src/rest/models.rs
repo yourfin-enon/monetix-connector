@@ -65,6 +65,7 @@ impl MonetixSignPart for MonetixGeneralModel {
 
         parts.push(format!("{}:project_id:{}", prefix, self.project_id));
         parts.push(format!("{}:payment_id:{}", prefix, self.payment_id));
+        //parts.push(format!("{}:signature:", prefix));
 
         targer.append(&mut parts);
     }
