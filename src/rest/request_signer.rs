@@ -1,6 +1,7 @@
 use ring::hmac;
 use serde::Serialize;
-use std::fmt::Write;
+use base64::Engine;
+use base64::engine::general_purpose;
 
 #[derive(Debug, Clone)]
 pub struct MonetixRequestSigner {
@@ -28,13 +29,9 @@ impl MonetixRequestSigner {
         let data = data.to_sign_string();
         let key = hmac::Key::new(hmac::HMAC_SHA512, self.secret_key.as_bytes());
         let signature = hmac::sign(&key, data.as_bytes());
-        
-        println!("{:?}", signature);
 
-        signature.as_ref().iter().fold(String::new(), |mut output, b| {
-            let _ = write!(output, "{b:02X}");
-            output
-        })
+        general_purpose::STANDARD.encode(signature)
+
     }
 }
 
