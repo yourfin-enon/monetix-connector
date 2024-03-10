@@ -6,13 +6,13 @@ use monetix_connector::rest::rest_client::MonetixRestClient;
 async fn main() {
     let project_id = std::env::var("PROJECT_ID").unwrap().parse().unwrap();
     let secret_key = std::env::var("SECRET_KEY").unwrap();
-    let app_token = std::env::var("APP_TOKEN").unwrap();
+    let api_token = std::env::var("API_TOKEN").unwrap();
     let callback_url = std::env::var("CALLBACK_URL").unwrap();
 
     let client = MonetixRestClient::new(
         project_id,
         secret_key,
-        app_token,
+        api_token,
         callback_url,
         MonetixApiConfig::prod(),);
         
