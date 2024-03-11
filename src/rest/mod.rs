@@ -4,5 +4,5 @@ pub mod errors;
 pub mod models;
 pub mod request_signer;
 pub mod rest_client;
-mod currencies;
-mod formaters;
+pub mod currencies;
+pub mod fmt;
