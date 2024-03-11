@@ -2,7 +2,7 @@ use lazy_static::lazy_static;
 use std::collections::HashMap;
 
 lazy_static! {
-    static ref DIGITS_BY_CODES: HashMap<&'static str, u32> = {
+    pub static ref DIGITS_BY_CODES: HashMap<&'static str, u32> = {
         let mut map = HashMap::with_capacity(200);
         map.insert("AED", 2);
         map.insert("AFN", 2);
