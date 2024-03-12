@@ -6,3 +6,4 @@ pub mod request_signer;
 pub mod rest_client;
 pub mod currencies;
 pub mod fmt;
+pub mod callback;
