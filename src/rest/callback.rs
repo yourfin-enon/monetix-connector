@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 use crate::rest::request_signer::{MonetixRequest, MonetixSignPart};
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct MonetixCallBackModel {
+pub struct MonetixCallbackModel {
     /// The object that contains the details of the customer bank card or other payment account
     pub account: Option<MonetixAccountModel>,
     /// The object that contains the result of the customer authentication by using 3‑D Secure.
@@ -18,11 +18,11 @@ pub struct MonetixCallBackModel {
     pub bank: Option<MonetixBankModel>,
     pub customer: MonetixCallbackCustomerModel,
     /// The array of strings with the messages from the Risk Control System related to the decision regarding the payment.
-    /// 
+    ///
     /// Example: reject.message("RCS reject. Amount less than allowed").
     pub decision_message: Option<Vec<String>>,
     pub decision: Option<String>,
-    /// The object that contains the data from the payment provider that are required to display 
+    /// The object that contains the data from the payment provider that are required to display
     /// QR code with payment details to the customer.
     pub display_data: Option<String>,
     pub errors: Option<Vec<MonetixErrorItemModel>>,
@@ -39,7 +39,7 @@ pub struct MonetixCallBackModel {
 pub struct MonetixOperationModel {
     pub code: Option<String>,
     /// Date and time the operation was created.
-    /// 
+    ///
     /// Example: 2017-07-27T15:19:13+0000
     pub created_date: Option<String>,
     /// The indicator that shows the result of the 3‑D Secure customer authentication. For more information, see Electronic Commerce Indicator (ECI) codes
@@ -60,8 +60,8 @@ pub struct MonetixOperationProviderModel {
     pub auth_code: Option<String>,
     pub date: Option<String>,
     /// CRC32 ID of the external provider gate.
-    /// 
-    /// In some cases, because of payment system or provider requirements, 
+    ///
+    /// In some cases, because of payment system or provider requirements,
     /// the type of this parameter may be integer.
     pub endpoint_id: Option<i32>,
     pub id: Option<i32>,
@@ -73,7 +73,7 @@ pub struct MonetixSumModel {
     /// The amount in minor units of the payment provider currency
     pub currency: Option<String>,
     /// The currency of the payment provider account in ISO 4217 alpha-3 format.
-    /// 
+    ///
     /// Example: EUR
     pub amount: Option<i32>,
 }
@@ -151,7 +151,7 @@ pub struct MonetixErrorItemModel {
 }
 
 impl MonetixSignPart for MonetixErrorItemModel {
-    fn add_sign_parts_sorted(&self, prefix: &str, targer: &mut Vec<String>) {
+    fn add_sign_parts_sorted(&self, _prefix: &str, targer: &mut Vec<String>) {
         let mut parts = Vec::with_capacity(3);
 
         targer.append(&mut parts);
@@ -204,7 +204,7 @@ impl MonetixSignPart for MonetixRedirectDataModel {
     }
 }
 
-impl MonetixRequest for MonetixCallBackModel {
+impl MonetixRequest for MonetixCallbackModel {
     fn to_sign_string(&self) -> String {
         let mut parts = Vec::with_capacity(100);
 
@@ -215,7 +215,7 @@ impl MonetixRequest for MonetixCallBackModel {
             redirect_data.add_sign_parts_sorted("redirect_data", &mut parts);
         }
 
-        if let Some(errors) = self.errors.as_ref() {
+        if let Some(_errors) = self.errors.as_ref() {
             // errors.add_sign_parts_sorted("errors", &mut parts);
             // todo
         }
