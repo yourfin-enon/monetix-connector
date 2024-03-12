@@ -24,7 +24,7 @@ async fn main() {
                 currency: "USD".to_string(),
                 description: Some("test".into()),
                 extra_param: Some("test".into()),
-                best_before: "2050-01-01T00:00:00±00:00".to_string(),
+                best_before: "2050-01-01T00:00:00+00:00".to_string(),
                 moto_type: 0,
                 //force_method: None,
             }

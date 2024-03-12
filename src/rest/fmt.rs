@@ -4,7 +4,7 @@ use rust_extensions::date_time::DateTimeAsMicroseconds;
 pub fn into_date_string(date: DateTimeAsMicroseconds) -> String {
     let date = date.to_chrono_utc();
 
-    format!("{}-{:02}-{:02}T{:02}:{:02}:{:02}±00", date.year(), date.month(), date.day(), date.hour(), date.minute(), date.second())
+    format!("{}-{:02}-{:02}T{:02}:{:02}:{:02}+00", date.year(), date.month(), date.day(), date.hour(), date.minute(), date.second())
 }
 
 pub fn into_minor_amount(amount: f64, minor_digits: usize) -> u64 {
