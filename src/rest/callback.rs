@@ -57,7 +57,7 @@ impl MonetixSignPart for MonetixCallbackCustomerModel {
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct MonetixErrorItemModel {}
 
-impl MonetixSignPart for MonetixCallbackPaymentModel {
+impl MonetixSignPart for MonetixErrorItemModel {
     fn add_sign_parts_sorted(&self, prefix: &str, targer: &mut Vec<String>) {
         let mut parts = Vec::with_capacity(3);
 
