@@ -1,10 +1,7 @@
 use crate::rest::config::MonetixApiConfig;
 use crate::rest::endpoints::MonetixEndpoint;
 use crate::rest::errors::Error;
-use crate::rest::models::{
-    MonetixCreateInvoicePaymentRequest, MonetixCreateInvoicePaymentResponse, MonetixCustomerModel,
-    MonetixGeneralModel, MonetixPaymentModel,
-};
+use crate::rest::models::{MonetixCreateInvoicePaymentRequest, MonetixCreateInvoicePaymentResponse, MonetixCustomerModel, MonetixGeneralModel, MonetixPaymentModel, MonetixReturnUrlModel};
 use crate::rest::request_signer::{MonetixRequest, MonetixRequestSigner};
 use error_chain::bail;
 use reqwest::header::{HeaderMap, HeaderValue};
@@ -20,12 +17,14 @@ pub struct MonetixRestClient {
     inner_client: reqwest::Client,
     project_id: u32,
     callback_url: Option<String>,
+    return_url: String,
 }
 
 impl MonetixRestClient {
     pub fn new(
         project_id: u32,
         secret_key: String,
+        return_url: String,
         callback_url: Option<String>,
         config: MonetixApiConfig,
     ) -> Self {
@@ -34,7 +33,8 @@ impl MonetixRestClient {
             host: config.rest_api_host,
             inner_client: reqwest::Client::new(),
             project_id,
-            callback_url,
+            return_url,
+            callback_url,            
         }
     }
 
@@ -68,7 +68,11 @@ impl MonetixRestClient {
                 //billing: None,
             },
             payment,
-            return_url: None,
+            return_url: MonetixReturnUrlModel {
+                success: Some(self.return_url.clone()),
+                decline: Some(self.return_url.clone()),
+                return_url: Some(self.return_url.clone()),
+            },
             card_operation_type: "sale".to_string(),
             send_email: false,
         };

@@ -6,7 +6,7 @@ pub struct MonetixCreateInvoicePaymentRequest {
     pub general: MonetixGeneralModel,
     pub customer: MonetixCustomerModel,
     pub payment: MonetixPaymentModel,
-    pub return_url: Option<MonetixReturnUrlModel>,
+    pub return_url: MonetixReturnUrlModel,
     /// Card operation type for customer to pay. Default is sale.
     //// Allowed values: sale, auth
     pub card_operation_type: String,

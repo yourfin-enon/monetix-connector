@@ -1,6 +1,7 @@
 use monetix_connector::rest::config::MonetixApiConfig;
 use monetix_connector::rest::models::MonetixPaymentModel;
 use monetix_connector::rest::rest_client::MonetixRestClient;
+use uuid::Uuid;
 
 #[tokio::main]
 async fn main() {
@@ -15,7 +16,7 @@ async fn main() {
         MonetixApiConfig::prod(),);
         
         let result = client.create_invoice_payment(
-            "test-payment-id-1",
+            format!("test-{}", Uuid::new_v4()),
             "test-customer-id-1",
             MonetixPaymentModel {
                 amount: 5,
@@ -27,6 +28,6 @@ async fn main() {
                 //force_method: None,
             }
         ).await;
-    
+
     println!("{:?}", result);
 }
