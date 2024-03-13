@@ -17,27 +17,21 @@ impl MonetixRequestSigner {
     }
 }
 
-pub trait MonetixRequest: Serialize {
-    fn to_sign_string(&self) -> String;
-}
-
-pub trait MonetixSignPart {
-    fn add_sign_parts_sorted(&self, prefix: &str, targer: &mut Vec<String>);
-}
+pub trait MonetixRequest: Serialize {}
 
 impl MonetixRequestSigner {
     pub fn generate_sign<T: MonetixRequest>(&self, data: &T) -> Result<String, String> {
         let data = serde_json::to_string(data);
-        
+
         let Ok(data) = data else {
-            return Err(format!("{}", data.unwrap_err()))
-        };        
+            return Err(format!("{}", data.unwrap_err()));
+        };
 
         Ok(self.sign_str(&data))
     }
 
     pub fn generate_sign_from_str(&self, data: &str) -> Result<String, String> {
-        let data = MonetixRequestSigner::convert_to_sign_string(data)?;        
+        let data = MonetixRequestSigner::convert_to_sign_string(data)?;
 
         Ok(self.sign_str(&data))
     }
@@ -120,22 +114,12 @@ mod tests {
         MonetixPaymentModel,
     };
 
-    #[derive(Serialize)]
-    struct TestRequest {}
-
-    impl MonetixRequest for TestRequest {
-        fn to_sign_string(&self) -> String {
-            "card_operation_type:sale;customer:id:customer_id;general:merchant_callback_url:https//google.com;general:payment_id:payment_id;general:project_id:1000;general:signature:;payment:amount:1000;payment:best_before:3467;payment:currency:USD;payment:description:description;payment:extra_param:extra_param;payment:moto_type:0;return_url:;send_email:0".to_string()
-        }
-    }
-
     #[test]
     fn correct_signing_algorithm() {
         let signer = MonetixRequestSigner {
             secret_key: "123abc123abc".to_string(),
         };
-        let request = TestRequest {};
-        let data = request.to_sign_string();
+        let data = "card_operation_type:sale;customer:id:customer_id;general:merchant_callback_url:https//google.com;general:payment_id:payment_id;general:project_id:1000;general:signature:;payment:amount:1000;payment:best_before:3467;payment:currency:USD;payment:description:description;payment:extra_param:extra_param;payment:moto_type:0;return_url:;send_email:0";
         let sign = signer.sign_str(&data);
 
         assert_eq!(sign, "ciI5AviOsoIACDm1McI7evYvYKLwjo7bv3+TF4MJkVNh9tPd9RWEYM49w7kgnFg50BpSGD4oU4JUZZkpfg4uTg==");
