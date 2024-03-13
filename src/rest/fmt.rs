@@ -67,6 +67,6 @@ mod tests {
         let date = DateTimeAsMicroseconds::new(1710181283221252);
         let date_string = into_date_string(date);
 
-        assert_eq!(date_string, "2024-03-11T18:21:23±00");
+        assert_eq!(date_string, "2024-03-11T18:21:23+00");
     }
 }

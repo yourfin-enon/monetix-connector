@@ -105,9 +105,11 @@ impl MonetixRestClient {
             .body(request_json.clone())
             .headers(headers)
             .send()
-            .await?;
+            .await;
+        
+        println!("{:?}", response);
 
-        self.handler(response, Some(request_json), &url).await
+        self.handler(response?, Some(request_json), &url).await
     }
 
     fn build_headers(&self) -> HeaderMap {

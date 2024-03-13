@@ -2,6 +2,7 @@ use ring::hmac;
 use serde::Serialize;
 use base64::Engine;
 use base64::engine::general_purpose;
+use serde_json::Value;
 
 #[derive(Debug, Clone)]
 pub struct MonetixRequestSigner {
@@ -27,11 +28,83 @@ pub trait MonetixSignPart {
 impl MonetixRequestSigner {
     pub fn generate_sign<T: MonetixRequest>(&self, data: &T) -> String {
         let data = data.to_sign_string();
+
+        self.sign_str(&data)
+    }
+
+    pub fn generate_sign_from_str(&self, data: &str) -> Result<String, String> {
+        let data = MonetixRequestSigner::convert_to_sign_string(data)?;        
+
+        Ok(self.sign_str(&data))
+    }
+
+    pub fn convert_to_sign_string(data: &str) -> Result<String, String> {
+        let parsed_value: Result<Value, _> = serde_json::from_str(data);
+
+        let Ok(parsed_value) = parsed_value else {
+            return Err(format!("Invalid json: {}", parsed_value.unwrap_err()));
+        };
+
+        let Some(values_by_keys) = parsed_value.as_object() else {
+            return Err("Invalid json: not an object".to_string());
+        };
+
+        let mut parts = Vec::with_capacity(values_by_keys.len());
+
+        for (key, value) in values_by_keys {
+            if let Some(part) = MonetixRequestSigner::key_value_to_string(key, value) {
+                parts.push(part);
+            }
+        }
+
+        parts.sort();
+        Ok(parts.join(";"))
+    }
+
+    fn sign_str(&self, data: &str) -> String {
         let key = hmac::Key::new(hmac::HMAC_SHA512, self.secret_key.as_bytes());
         let signature = hmac::sign(&key, data.as_bytes());
 
         general_purpose::STANDARD.encode(signature)
+    }
 
+    fn key_value_to_string(key: &str, value: &Value) -> Option<String> {
+        if key == "signature" {
+            return None;
+        }
+
+        let result = match value {
+            Value::Null => format!("{}:", key),
+            Value::Bool(value) => format!("{}:{}", key, *value as i32),
+            Value::Number(value) => format!("{}:{}", key, value),
+            Value::String(value) => format!("{}:{}", key, value),
+            Value::Array(value) => {
+                let mut parts = Vec::with_capacity(value.len());
+
+                for (i, v) in value.iter().enumerate() {
+                    if let Some(part) = MonetixRequestSigner::key_value_to_string(&i.to_string(), v) {
+                        parts.push(format!("{}:{}", key, part));
+                    }
+                }
+
+                parts.sort();
+                parts.join(";")
+            }
+            Value::Object(value) => {
+                let mut parts = Vec::with_capacity(value.len());
+
+                for (key, value) in value.iter() {
+                    if let Some(part) = MonetixRequestSigner::key_value_to_string(key, value) {
+                        parts.push(part);
+                    }
+                }
+
+                parts.sort();
+                parts.join(";")
+            }
+        };
+
+        Some(result)
     }
 }
 
@@ -62,6 +135,26 @@ mod tests {
 
         assert_eq!(sign, "ciI5AviOsoIACDm1McI7evYvYKLwjo7bv3+TF4MJkVNh9tPd9RWEYM49w7kgnFg50BpSGD4oU4JUZZkpfg4uTg==");
     }
+
+    #[test]
+    fn convert_to_sign_string_1() {
+        let json = r#"
+        {
+            "name": "John Doe",
+            "signature": "sfdfds",
+            "last_name": null,
+            "middle_name": "",
+            "age": 43,
+            "phones": [
+                "+44 1234567",
+                "+44 2345678"
+            ]
+        }"#;
+        let result = MonetixRequestSigner::convert_to_sign_string(json).unwrap();
+
+        assert_eq!(result, "age:43;last_name:;middle_name:;name:John Doe;phones:0:+44 1234567;phones:1:+44 2345678");
+    }
+
 
     #[test]
     fn to_sign_string() {
