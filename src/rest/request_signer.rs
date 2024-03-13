@@ -26,6 +26,10 @@ impl MonetixRequestSigner {
         let Ok(data) = data else {
             return Err(format!("{}", data.unwrap_err()));
         };
+        
+        println!("{}", data);
+        let data = MonetixRequestSigner::convert_to_sign_string(&data)?;
+        println!("{}", data);
 
         Ok(self.sign_str(&data))
     }
@@ -91,9 +95,9 @@ impl MonetixRequestSigner {
             Value::Object(value) => {
                 let mut parts = Vec::with_capacity(value.len());
 
-                for (key, value) in value.iter() {
-                    if let Some(part) = MonetixRequestSigner::key_value_to_string(key, value) {
-                        parts.push(part);
+                for (inner_key, inner_value) in value.iter() {
+                    if let Some(part) = MonetixRequestSigner::key_value_to_string(inner_key, inner_value) {
+                        parts.push(format!("{}:{}", key, part));
                     }
                 }
 
@@ -144,6 +148,31 @@ mod tests {
         assert_eq!(result, "age:43;last_name:;middle_name:;name:John Doe;phones:0:+44 1234567;phones:1:+44 2345678");
     }
 
+    #[test]
+    fn convert_to_sign_string_bool() {
+        let json = r#"
+        {
+            "is_true": true,
+            "is_false": false
+        }"#;
+        let result = MonetixRequestSigner::convert_to_sign_string(json).unwrap();
+
+        assert_eq!(result, "is_false:0;is_true:1");
+    }
+
+    #[test]
+    fn convert_to_sign_string_object() {
+        let json = r#"
+        {
+            "object": {
+                "is_true": "true",
+                "is_false": "false"
+            }
+        }"#;
+        let result = MonetixRequestSigner::convert_to_sign_string(json).unwrap();
+
+        assert_eq!(result, "object:is_false:false;object:is_true:true");
+    }
 
     #[test]
     fn to_sign_string() {
@@ -183,16 +212,11 @@ mod tests {
             card_operation_type: "sale".to_string(),
             send_email: false,
         };
-        let json = serde_json::to_string(&request).unwrap();
-        println!("json: {}", json);
-
         let signer = MonetixRequestSigner {
             secret_key: "123".to_string(),
         };
-        let sign_string = request.to_sign_string();
-        println!("sign_string: {}", sign_string);
 
-        let sign = signer.generate_sign(&request);
-        println!("sign: {:?}", sign);
+        let sign = signer.generate_sign(&request).unwrap();
+        assert_eq!(sign, "Y+5QpmclSM9RATg0IoXaOFYSPmpCgd+IV2k7jK2gHHChk/sL7H5dcjjR1gZ8gNV0vz9sNIqrOpQo/HcInJ1iTQ==");
     }
 }
