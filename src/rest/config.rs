@@ -10,7 +10,7 @@ impl MonetixApiConfig {
 
     pub fn prod() -> Self {
         Self {
-            rest_api_host: "https://api.trxhost.com.".into(),
+            rest_api_host: "https://api.trxhost.com".into(),
         }
     }
 }
