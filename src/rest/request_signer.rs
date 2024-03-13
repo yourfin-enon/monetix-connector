@@ -26,10 +26,14 @@ pub trait MonetixSignPart {
 }
 
 impl MonetixRequestSigner {
-    pub fn generate_sign<T: MonetixRequest>(&self, data: &T) -> String {
-        let data = data.to_sign_string();
+    pub fn generate_sign<T: MonetixRequest>(&self, data: &T) -> Result<String, String> {
+        let data = serde_json::to_string(data);
+        
+        let Ok(data) = data else {
+            return Err(format!("{}", data.unwrap_err()))
+        };        
 
-        self.sign_str(&data)
+        Ok(self.sign_str(&data))
     }
 
     pub fn generate_sign_from_str(&self, data: &str) -> Result<String, String> {
@@ -131,7 +135,8 @@ mod tests {
             secret_key: "123abc123abc".to_string(),
         };
         let request = TestRequest {};
-        let sign = signer.generate_sign(&request);
+        let data = request.to_sign_string();
+        let sign = signer.sign_str(&data);
 
         assert_eq!(sign, "ciI5AviOsoIACDm1McI7evYvYKLwjo7bv3+TF4MJkVNh9tPd9RWEYM49w7kgnFg50BpSGD4oU4JUZZkpfg4uTg==");
     }
@@ -204,6 +209,6 @@ mod tests {
         println!("sign_string: {}", sign_string);
 
         let sign = signer.generate_sign(&request);
-        println!("sign: {}", sign);
+        println!("sign: {:?}", sign);
     }
 }

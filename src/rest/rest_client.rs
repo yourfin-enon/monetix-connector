@@ -75,7 +75,7 @@ impl MonetixRestClient {
             card_operation_type: "sale".to_string(),
             send_email: false,
         };
-        let sign = self.signer.generate_sign(&request);
+        let sign = self.signer.generate_sign(&request)?;
         
         println!("{:?}", request);
         println!("{:?}", sign);
