@@ -27,9 +27,7 @@ impl MonetixRequestSigner {
             return Err(format!("{}", data.unwrap_err()));
         };
         
-        println!("{}", data);
         let data = MonetixRequestSigner::convert_to_sign_string(&data)?;
-        println!("{}", data);
 
         Ok(self.sign_str(&data))
     }

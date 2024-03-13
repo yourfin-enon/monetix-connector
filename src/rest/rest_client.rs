@@ -16,24 +16,21 @@ use std::collections::HashMap;
 #[derive(Clone)]
 pub struct MonetixRestClient {
     signer: MonetixRequestSigner,
-    _api_token: String,
     host: String,
     inner_client: reqwest::Client,
     project_id: u32,
-    callback_url: String,
+    callback_url: Option<String>,
 }
 
 impl MonetixRestClient {
     pub fn new(
         project_id: u32,
         secret_key: String,
-        api_token: String,
-        callback_url: String,
+        callback_url: Option<String>,
         config: MonetixApiConfig,
     ) -> Self {
         Self {
             signer: MonetixRequestSigner::new(secret_key),
-            _api_token: api_token,
             host: config.rest_api_host,
             inner_client: reqwest::Client::new(),
             project_id,
@@ -51,7 +48,7 @@ impl MonetixRestClient {
             general: MonetixGeneralModel {
                 project_id: self.project_id,
                 payment_id: payment_id.into(),
-                merchant_callback_url: Some(self.callback_url.clone()),
+                merchant_callback_url: self.callback_url.clone(),
                 signature: "".to_string(),
             },
             customer: MonetixCustomerModel {
@@ -76,9 +73,6 @@ impl MonetixRestClient {
             send_email: false,
         };
         let sign = self.signer.generate_sign(&request)?;
-        
-        println!("{:?}", request);
-        println!("{:?}", sign);
 
         request.general.signature = sign;
 
@@ -96,18 +90,14 @@ impl MonetixRestClient {
         let url: String = format!("{}{}", self.host, String::from(&endpoint));
         let headers = self.build_headers();
         let client = &self.inner_client;
-        let request_json = serde_json::to_string(&request)?;
-        
-        println!("{}", request_json);
-        
+        let request_json = serde_json::to_string(&request)?;        
+       
         let response = client
             .post(&url)
             .body(request_json.clone())
             .headers(headers)
             .send()
-            .await;
-        
-        println!("{:?}", response);
+            .await;        
 
         self.handler(response?, Some(request_json), &url).await
     }

@@ -22,7 +22,7 @@ pub struct MonetixCreateInvoicePaymentResponse {
     #[serde(rename = "request_id")]
     pub request_id: String,
     #[serde(rename = "project_id")]
-    pub project_id: String,
+    pub project_id: u32,
     #[serde(rename = "payment_id")]
     pub payment_id: String,
 }

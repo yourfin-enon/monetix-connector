@@ -25,8 +25,6 @@ pub fn into_minor_amount(amount: f64, minor_digits: usize) -> u64 {
         panic!("impossible");
     };
 
-    println!("{:?}", result);
-
     result.parse().unwrap()
 }
 
