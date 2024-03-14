@@ -1,5 +1,5 @@
 use serde::{Deserialize, Serialize};
-use crate::rest::gate::request_signer::{MonetixRequest};
+use crate::rest::gate::signer::{MonetixRequest};
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct MonetixCreateInvoicePaymentRequest {
