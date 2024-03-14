@@ -31,7 +31,7 @@ pub fn into_minor_amount(amount: f64, minor_digits: usize) -> u64 {
 #[cfg(test)]
 mod tests {
     use rust_extensions::date_time::DateTimeAsMicroseconds;
-    use crate::rest::fmt::{into_date_string, into_minor_amount};
+    use crate::rest::gate::fmt::{into_date_string, into_minor_amount};
 
     #[test]
     fn minor_amount_1() {

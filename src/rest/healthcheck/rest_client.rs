@@ -3,11 +3,11 @@ use reqwest::header::{HeaderMap, HeaderValue};
 use serde::de::DeserializeOwned;
 use crate::rest::healthcheck::endpoints::MonetixHealthcheckEndpoint;
 use crate::rest::healthcheck::models::GetPaymentUrlArgs;
-use crate::rest::healthcheck::signer::MonetixHealthcheckSigner;
+use crate::rest::healthcheck::cipher::MonetixHealthcheckCipher;
 
 #[derive(Clone)]
 pub struct MonetixHealthcheckRestClient {
-    signer: MonetixHealthcheckSigner,
+    signer: MonetixHealthcheckCipher,
     host: String,
     inner_client: reqwest::Client,
     project_id: u32,
@@ -20,7 +20,7 @@ impl MonetixHealthcheckRestClient {
         api_url: String,
     ) -> Self {
         Self {
-            signer: MonetixHealthcheckSigner::new(secret_key),
+            signer: MonetixHealthcheckCipher::new(secret_key),
             host: api_url,
             inner_client: reqwest::Client::new(),
             project_id,
@@ -49,7 +49,7 @@ impl MonetixHealthcheckRestClient {
     ) -> Result<T, Error> {
         let url = if let Some(query) = query  {
             let args = format!("/{}?{}", String::from(&endpoint), query);
-            let sign = self.signer.generate_sign(&args)?;
+            let sign = self.signer.encrypt(&args)?;
             
             format!("{}/{}/{}", host, self.project_id, sign)
         } else {

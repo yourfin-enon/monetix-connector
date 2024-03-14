@@ -31,3 +31,6 @@ base64 = "0.21.0"
 lazy_static = "*"
 chrono = "*"
 uuid = { version = "1.7.0", features = ["v4"] }
+aes = "*"
+libaes = "*"
+rand = "*"
