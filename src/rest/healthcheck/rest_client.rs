@@ -59,7 +59,6 @@ impl MonetixHealthcheckRestClient {
             format!("{}{}", host, String::from(&endpoint))
         };
 
-        println!("{}", url);
         let headers = self.build_headers();
         let response = self.inner_client.get(&url).headers(headers).send().await?;
 
