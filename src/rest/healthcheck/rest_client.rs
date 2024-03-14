@@ -26,7 +26,7 @@ impl MonetixHealthcheckRestClient {
         }
     }
 
-    pub async fn get_host(&self) -> Result<String, Error> {
+    pub async fn get_payment_host(&self) -> Result<String, Error> {
         let endpoint = MonetixHealthcheckEndpoint::PaymentHost;
         let resp = self.get_string(&self.host, endpoint, None).await?;
 
@@ -34,11 +34,14 @@ impl MonetixHealthcheckRestClient {
     }
 
     pub async fn get_payment_url(&self, args: GetPaymentUrlArgs) -> Result<String, Error> {
-        let host = self.get_host().await?;
+        let host = self.get_payment_host().await?;
         let query = serde_qs::to_string(&args).unwrap();
         let endpoint = MonetixHealthcheckEndpoint::PaymentUrl;
+        let args = format!("{}?{}", String::from(&endpoint), query);
+        let sign = self.signer.encrypt(&args)?;
+        let url = format!("{}/{}/{}", host, self.project_id, sign);
 
-        self.get_string(&host, endpoint, Some(&query)).await
+        Ok(url)
     }
 
     pub async fn get_string(
