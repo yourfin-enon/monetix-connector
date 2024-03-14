@@ -44,6 +44,15 @@ impl MonetixHealthcheckRestClient {
         Ok(url)
     }
 
+    pub async fn get_payment_sign(&self, args: GetPaymentUrlArgs) -> Result<String, Error> {
+        let query = serde_qs::to_string(&args).unwrap();
+        let endpoint = MonetixHealthcheckEndpoint::PaymentUrl;
+        let args = format!("{}?{}", String::from(&endpoint), query);
+        let sign = self.signer.encrypt(&args)?;
+
+        Ok(sign)
+    }
+
     pub async fn get_string(
         &self,
         host: &str,

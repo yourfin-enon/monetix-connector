@@ -12,22 +12,29 @@ async fn main() {
     let encryption_key = std::env::var("ENCRYPTION_KEY").unwrap();
     let healthcheck_url = std::env::var("HEALTHCHECK_URL").unwrap();
 
-    let gate_client =
-        MonetixHealthcheckRestClient::new(project_id, encryption_key, healthcheck_url);
+    let client = MonetixHealthcheckRestClient::new(project_id, encryption_key, healthcheck_url);
 
-    let result = gate_client
-        .get_payment_url(GetPaymentUrlArgs {
-            payment_id: format!("test-{}", Uuid::new_v4()),
-            payment_amount: 10,
-            payment_currency: "USD".to_string(),
-            project_id,
-            customer_id: "test".to_string(),
-            customer_first_name: "test".to_string(),
-            customer_last_name: "test".to_string(),
-            customer_email: "test@test.com".to_string(),
-        })
-        .await;
+    let result = client.get_payment_host().await;
 
+    println!("{:?}", result);
+
+    let payment_args = GetPaymentUrlArgs {
+        payment_id: format!("test-{}", Uuid::new_v4()),
+        payment_amount: 10,
+        payment_currency: "USD".to_string(),
+        project_id,
+        customer_id: "test".to_string(),
+        customer_first_name: "test".to_string(),
+        customer_last_name: "test".to_string(),
+        customer_email: "test@test.com".to_string(),
+    };
+
+    println!("{:?}", payment_args);
+    let result = client.get_payment_sign(payment_args.clone()).await;
+
+    println!("{:?}", result);
+    
+    let result = client.get_payment_url(payment_args).await;
     println!("{:?}", result);
 
     let gate_client = MonetixGateRestClient::new(
