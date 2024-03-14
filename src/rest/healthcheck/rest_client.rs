@@ -1,12 +1,14 @@
 use crate::rest::errors::Error;
 use reqwest::header::{HeaderMap, HeaderValue};
+use crate::rest::gate::signer::MonetixGateSigner;
 use crate::rest::healthcheck::endpoints::MonetixHealthcheckEndpoint;
 use crate::rest::healthcheck::models::GetPaymentUrlArgs;
 use crate::rest::healthcheck::cipher::MonetixHealthcheckCipher;
 
 #[derive(Clone)]
 pub struct MonetixHealthcheckRestClient {
-    signer: MonetixHealthcheckCipher,
+    cipher: MonetixHealthcheckCipher,
+    signer: MonetixGateSigner,
     host: String,
     inner_client: reqwest::Client,
     project_id: u32,
@@ -15,12 +17,14 @@ pub struct MonetixHealthcheckRestClient {
 impl MonetixHealthcheckRestClient {
     pub fn new(
         project_id: u32,
-        secret_key: String,
-        api_url: String,
+        secret_key: impl Into<String>,
+        encryption_key: impl Into<String>,
+        api_url: impl Into<String>,
     ) -> Self {
         Self {
-            signer: MonetixHealthcheckCipher::new(secret_key),
-            host: api_url,
+            cipher: MonetixHealthcheckCipher::new(encryption_key),
+            signer: MonetixGateSigner::new(secret_key),
+            host: api_url.into(),
             inner_client: reqwest::Client::new(),
             project_id,
         }
@@ -37,18 +41,16 @@ impl MonetixHealthcheckRestClient {
         let host = self.get_payment_host().await?;
         let query = serde_qs::to_string(&args).unwrap();
         let endpoint = MonetixHealthcheckEndpoint::PaymentUrl;
-        let args = format!("{}?{}", String::from(&endpoint), query);
-        let sign = self.signer.encrypt(&args)?;
-        let url = format!("{}/{}/{}", host, self.project_id, sign);
+        let sign = self.signer.generate_sign(&args)?;
+        let args = format!("{}?{}&signature={}", String::from(&endpoint), query, sign);
+        let encrypted = self.cipher.encrypt(&args)?;
+        let url = format!("{}/{}/{}", host, self.project_id, encrypted);
 
         Ok(url)
     }
 
     pub async fn get_payment_sign(&self, args: GetPaymentUrlArgs) -> Result<String, Error> {
-        let query = serde_qs::to_string(&args).unwrap();
-        let endpoint = MonetixHealthcheckEndpoint::PaymentUrl;
-        let args = format!("{}?{}", String::from(&endpoint), query);
-        let sign = self.signer.encrypt(&args)?;
+        let sign = self.signer.generate_sign(&args)?;
 
         Ok(sign)
     }
@@ -61,7 +63,7 @@ impl MonetixHealthcheckRestClient {
     ) -> Result<String, Error> {
         let url = if let Some(query) = query  {
             let args = format!("{}?{}", String::from(&endpoint), query);
-            let sign = self.signer.encrypt(&args)?;
+            let sign = self.cipher.encrypt(&args)?;
             
             format!("{}/{}/{}", host, self.project_id, sign)
         } else {

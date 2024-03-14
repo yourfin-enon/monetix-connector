@@ -12,11 +12,12 @@ async fn main() {
     let encryption_key = std::env::var("ENCRYPTION_KEY").unwrap();
     let healthcheck_url = std::env::var("HEALTHCHECK_URL").unwrap();
 
-    let client = MonetixHealthcheckRestClient::new(project_id, encryption_key, healthcheck_url);
+    let client =
+        MonetixHealthcheckRestClient::new(project_id, &secret_key, encryption_key, healthcheck_url);
 
     let result = client.get_payment_host().await;
 
-    println!("{:?}", result);
+    println!("get_payment_host: {:?}", result);
 
     let payment_args = GetPaymentUrlArgs {
         payment_id: format!("test-{}", Uuid::new_v4()),
@@ -32,10 +33,10 @@ async fn main() {
     println!("{:?}", payment_args);
     let result = client.get_payment_sign(payment_args.clone()).await;
 
-    println!("{:?}", result);
-    
+    println!("get_payment_sign: {:?}", result);
+
     let result = client.get_payment_url(payment_args).await;
-    println!("{:?}", result);
+    println!("get_payment_url: {:?}", result);
 
     let gate_client = MonetixGateRestClient::new(
         project_id,
