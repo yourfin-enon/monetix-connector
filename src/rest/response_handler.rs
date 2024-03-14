@@ -1,8 +1,9 @@
 use error_chain::bail;
-use http::StatusCode;
+use reqwest::StatusCode;
 use reqwest::Response;
 use serde::de::DeserializeOwned;
 use crate::rest::errors::Error;
+
 
 pub async fn handle<T: DeserializeOwned>(
     response: Response,
