@@ -29,7 +29,7 @@ pub struct MonetixCallbackModel {
     /// The object that contains information about the operation that triggered the callback
     pub operation: Option<MonetixOperationModel>,
     pub payment: MonetixCallbackPaymentModel,
-    pub project_id: i32,
+    pub project_id: u64,
     pub redirect_data: Option<MonetixRedirectDataModel>,
     pub signature: String,
 }
@@ -43,7 +43,7 @@ pub struct MonetixOperationModel {
     pub created_date: Option<String>,
     /// The indicator that shows the result of the 3‑D Secure customer authentication. For more information, see Electronic Commerce Indicator (ECI) codes
     pub eci: Option<String>,
-    pub id: Option<i32>,
+    pub id: Option<u64>,
     pub message: Option<String>,
     pub provider: Option<MonetixOperationProviderModel>,
     pub request_id: String,
