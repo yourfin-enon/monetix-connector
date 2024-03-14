@@ -3,13 +3,13 @@ use serde::Deserialize;
 use std::collections::HashMap;
 
 #[derive(Debug, Deserialize)]
-pub struct CoinspaidContentError {
+pub struct MonetixContentError {
     pub errors: HashMap<String, String>,
 }
 
 error_chain! {
     errors {
-       CoingeckoError(response: CoinspaidContentError)
+       MonetixError(response: MonetixContentError)
     }
     types {
         Error, ErrorKind, ResultExt, Result;

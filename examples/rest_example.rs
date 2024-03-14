@@ -1,6 +1,5 @@
-use monetix_connector::rest::config::MonetixApiConfig;
-use monetix_connector::rest::models::MonetixPaymentModel;
-use monetix_connector::rest::rest_client::MonetixRestClient;
+use monetix_connector::rest::gate::models::MonetixPaymentModel;
+use monetix_connector::rest::gate::rest_client::MonetixGateRestClient;
 use uuid::Uuid;
 
 #[tokio::main]
@@ -9,11 +8,11 @@ async fn main() {
     let secret_key = std::env::var("SECRET_KEY").unwrap();
     let callback_url = std::env::var("CALLBACK_URL").ok();
 
-    let client = MonetixRestClient::new(
+    let client = MonetixGateRestClient::new(
         project_id,
         secret_key,
-        callback_url,
-        MonetixApiConfig::prod(),);
+        "google.com".to_string(),
+        callback_url);
         
         let result = client.create_invoice_payment(
             format!("test-{}", Uuid::new_v4()),

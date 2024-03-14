@@ -1,8 +1,7 @@
-use crate::rest::config::MonetixApiConfig;
-use crate::rest::endpoints::MonetixEndpoint;
+use crate::rest::gate::endpoints::MonetixGateEndpoint;
 use crate::rest::errors::Error;
-use crate::rest::models::{MonetixCreateInvoicePaymentRequest, MonetixCreateInvoicePaymentResponse, MonetixCustomerModel, MonetixGeneralModel, MonetixPaymentModel, MonetixReturnUrlModel};
-use crate::rest::request_signer::{MonetixRequest, MonetixRequestSigner};
+use crate::rest::gate::models::{MonetixCreateInvoicePaymentRequest, MonetixCreateInvoicePaymentResponse, MonetixCustomerModel, MonetixGeneralModel, MonetixPaymentModel, MonetixReturnUrlModel};
+use crate::rest::gate::request_signer::{MonetixRequest, MonetixGateSigner};
 use error_chain::bail;
 use reqwest::header::{HeaderMap, HeaderValue};
 use reqwest::Response;
@@ -11,8 +10,8 @@ use serde::de::DeserializeOwned;
 use std::collections::HashMap;
 
 #[derive(Clone)]
-pub struct MonetixRestClient {
-    signer: MonetixRequestSigner,
+pub struct MonetixGateRestClient {
+    signer: MonetixGateSigner,
     host: String,
     inner_client: reqwest::Client,
     project_id: u32,
@@ -20,17 +19,16 @@ pub struct MonetixRestClient {
     return_url: String,
 }
 
-impl MonetixRestClient {
+impl MonetixGateRestClient {
     pub fn new(
         project_id: u32,
         secret_key: String,
         return_url: String,
         callback_url: Option<String>,
-        config: MonetixApiConfig,
     ) -> Self {
         Self {
-            signer: MonetixRequestSigner::new(secret_key),
-            host: config.rest_api_host,
+            signer: MonetixGateSigner::new(secret_key),
+            host: "https://api.trxhost.com".to_string(),
             inner_client: reqwest::Client::new(),
             project_id,
             return_url,
@@ -80,7 +78,7 @@ impl MonetixRestClient {
 
         request.general.signature = sign;
 
-        let endpoint = MonetixEndpoint::CreateInvoicePayment;
+        let endpoint = MonetixGateEndpoint::CreateInvoicePayment;
         let result = self.post(endpoint, request).await;
 
         result
@@ -88,7 +86,7 @@ impl MonetixRestClient {
 
     pub async fn post<R: MonetixRequest, T: DeserializeOwned>(
         &self,
-        endpoint: MonetixEndpoint,
+        endpoint: MonetixGateEndpoint,
         request: R,
     ) -> Result<T, Error> {
         let url: String = format!("{}{}", self.host, String::from(&endpoint));
