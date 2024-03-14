@@ -1,6 +1,5 @@
 use crate::rest::errors::Error;
 use reqwest::header::{HeaderMap, HeaderValue};
-use serde::de::DeserializeOwned;
 use crate::rest::healthcheck::endpoints::MonetixHealthcheckEndpoint;
 use crate::rest::healthcheck::models::GetPaymentUrlArgs;
 use crate::rest::healthcheck::cipher::MonetixHealthcheckCipher;
@@ -29,8 +28,9 @@ impl MonetixHealthcheckRestClient {
 
     pub async fn get_host(&self) -> Result<String, Error> {
         let endpoint = MonetixHealthcheckEndpoint::PaymentHost;
+        let resp = self.get_string(&self.host, endpoint, None).await?;
 
-        self.get_signed(&self.host, endpoint, None).await
+        Ok(format!("https://{}", resp.trim()))
     }
 
     pub async fn get_payment_url(&self, args: GetPaymentUrlArgs) -> Result<String, Error> {
@@ -38,28 +38,29 @@ impl MonetixHealthcheckRestClient {
         let query = serde_qs::to_string(&args).unwrap();
         let endpoint = MonetixHealthcheckEndpoint::PaymentUrl;
 
-        self.get_signed(&host, endpoint, Some(&query)).await
+        self.get_string(&host, endpoint, Some(&query)).await
     }
 
-    pub async fn get_signed<T: DeserializeOwned>(
+    pub async fn get_string(
         &self,
         host: &str,
         endpoint: MonetixHealthcheckEndpoint,
         query: Option<&str>,
-    ) -> Result<T, Error> {
+    ) -> Result<String, Error> {
         let url = if let Some(query) = query  {
-            let args = format!("/{}?{}", String::from(&endpoint), query);
+            let args = format!("{}?{}", String::from(&endpoint), query);
             let sign = self.signer.encrypt(&args)?;
             
             format!("{}/{}/{}", host, self.project_id, sign)
         } else {
-            format!("{}/{}", host, String::from(&endpoint))
+            format!("{}{}", host, String::from(&endpoint))
         };
 
+        println!("{}", url);
         let headers = self.build_headers();
         let response = self.inner_client.get(&url).headers(headers).send().await?;
 
-        crate::rest::response_handler::handle(response, None, &url).await
+        Ok(response.text().await?)
     }
 
     fn build_headers(&self) -> HeaderMap {
