@@ -5,11 +5,11 @@ use serde::Serialize;
 use serde_json::Value;
 
 #[derive(Debug, Clone)]
-pub struct MonetixGateSigner {
+pub struct MonetixSigner {
     secret_key: String,
 }
 
-impl MonetixGateSigner {
+impl MonetixSigner {
     pub fn new(secret_key: impl Into<String>) -> Self {
         Self {
             secret_key: secret_key.into(),
@@ -19,7 +19,7 @@ impl MonetixGateSigner {
 
 pub trait MonetixRequest: Serialize {}
 
-impl MonetixGateSigner {
+impl MonetixSigner {
     pub fn generate_sign<T: MonetixRequest>(&self, data: &T) -> Result<String, String> {
         let data = serde_json::to_string(data);
 
@@ -27,13 +27,13 @@ impl MonetixGateSigner {
             return Err(format!("{}", data.unwrap_err()));
         };
 
-        let data = MonetixGateSigner::convert_to_sign_string(&data)?;
+        let data = MonetixSigner::convert_to_sign_string(&data)?;
 
         Ok(self.sign_str(&data))
     }
 
     pub fn generate_sign_from_str(&self, data: &str) -> Result<String, String> {
-        let data = MonetixGateSigner::convert_to_sign_string(data)?;
+        let data = MonetixSigner::convert_to_sign_string(data)?;
 
         Ok(self.sign_str(&data))
     }
@@ -52,7 +52,7 @@ impl MonetixGateSigner {
         let mut parts = Vec::with_capacity(values_by_keys.len());
 
         for (key, value) in values_by_keys {
-            if let Some(part) = MonetixGateSigner::key_value_to_string(key, value) {
+            if let Some(part) = MonetixSigner::key_value_to_string(key, value) {
                 parts.push(part);
             }
         }
@@ -82,7 +82,7 @@ impl MonetixGateSigner {
                 let mut parts = Vec::with_capacity(value.len());
 
                 for (i, v) in value.iter().enumerate() {
-                    if let Some(part) = MonetixGateSigner::key_value_to_string(&i.to_string(), v) {
+                    if let Some(part) = MonetixSigner::key_value_to_string(&i.to_string(), v) {
                         parts.push(format!("{}:{}", key, part));
                     }
                 }
@@ -95,7 +95,7 @@ impl MonetixGateSigner {
 
                 for (inner_key, inner_value) in value.iter() {
                     if let Some(part) =
-                        MonetixGateSigner::key_value_to_string(inner_key, inner_value)
+                        MonetixSigner::key_value_to_string(inner_key, inner_value)
                     {
                         parts.push(format!("{}:{}", key, part));
                     }
@@ -117,7 +117,7 @@ mod tests {
 
     #[test]
     fn correct_signing_algorithm() {
-        let signer = MonetixGateSigner {
+        let signer = MonetixSigner {
             secret_key: "123abc123abc".to_string(),
         };
         let data = "card_operation_type:sale;customer:id:customer_id;general:merchant_callback_url:https//google.com;general:payment_id:payment_id;general:project_id:1000;general:signature:;payment:amount:1000;payment:best_before:3467;payment:currency:USD;payment:description:description;payment:extra_param:extra_param;payment:moto_type:0;return_url:;send_email:0";
@@ -140,7 +140,7 @@ mod tests {
                 "+44 2345678"
             ]
         }"#;
-        let result = MonetixGateSigner::convert_to_sign_string(json).unwrap();
+        let result = MonetixSigner::convert_to_sign_string(json).unwrap();
 
         assert_eq!(result, "age:43;last_name:;middle_name:;name:John Doe;phones:0:+44 1234567;phones:1:+44 2345678");
     }
@@ -152,7 +152,7 @@ mod tests {
             "is_true": true,
             "is_false": false
         }"#;
-        let result = MonetixGateSigner::convert_to_sign_string(json).unwrap();
+        let result = MonetixSigner::convert_to_sign_string(json).unwrap();
 
         assert_eq!(result, "is_false:0;is_true:1");
     }
@@ -166,7 +166,7 @@ mod tests {
                 "is_false": "false"
             }
         }"#;
-        let result = MonetixGateSigner::convert_to_sign_string(json).unwrap();
+        let result = MonetixSigner::convert_to_sign_string(json).unwrap();
 
         assert_eq!(result, "object:is_false:false;object:is_true:true");
     }
@@ -213,7 +213,7 @@ mod tests {
             card_operation_type: "sale".to_string(),
             send_email: false,
         };
-        let signer = MonetixGateSigner {
+        let signer = MonetixSigner {
             secret_key: "123".to_string(),
         };
 

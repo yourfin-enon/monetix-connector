@@ -4,11 +4,11 @@ use libaes::Cipher;
 use rand::RngCore;
 
 #[derive(Debug, Clone)]
-pub struct MonetixHealthcheckCipher {
+pub struct MonetixCipher {
     secret_key: String,
 }
 
-impl MonetixHealthcheckCipher {
+impl MonetixCipher {
     pub fn new(secret_key: impl Into<String>) -> Self {
         Self {
             secret_key: secret_key.into(),
@@ -16,24 +16,24 @@ impl MonetixHealthcheckCipher {
     }
 }
 
-impl MonetixHealthcheckCipher {
+impl MonetixCipher {
     pub fn encrypt(&self, data: &str) -> Result<String, String> {
-        let iv = MonetixHealthcheckCipher::get_iv();
-        let encrypted_data = MonetixHealthcheckCipher::encrypt_with_iv(data.as_bytes(), &self.secret_key, &iv);
-        let encoded_data = MonetixHealthcheckCipher::encode(&encrypted_data);
-        let encoded_iv = MonetixHealthcheckCipher::encode(&iv);
+        let iv = MonetixCipher::get_iv();
+        let encrypted_data = MonetixCipher::encrypt_with_iv(data.as_bytes(), &self.secret_key, &iv);
+        let encoded_data = MonetixCipher::encode(&encrypted_data);
+        let encoded_iv = MonetixCipher::encode(&iv);
         let result = format!("{}::{}", encoded_data, encoded_iv);
 
-        Ok(MonetixHealthcheckCipher::encode(result.as_bytes()))
+        Ok(MonetixCipher::encode(result.as_bytes()))
     }
 
     pub fn decrypt(&self, data: &str) -> Result<String, String> {
-        let decoded = MonetixHealthcheckCipher::decode(data.as_bytes())?;
+        let decoded = MonetixCipher::decode(data.as_bytes())?;
         let data = std::str::from_utf8(&decoded).unwrap();
         let splits: Vec<&str> = data.split("::").collect();
-        let data = MonetixHealthcheckCipher::decode(splits[0].as_bytes()).unwrap();
-        let iv = MonetixHealthcheckCipher::decode(splits[1].as_bytes()).unwrap();
-        let decrypted = MonetixHealthcheckCipher::decrypt_with_iv(&data, &self.secret_key, &iv).unwrap();
+        let data = MonetixCipher::decode(splits[0].as_bytes()).unwrap();
+        let iv = MonetixCipher::decode(splits[1].as_bytes()).unwrap();
+        let decrypted = MonetixCipher::decrypt_with_iv(&data, &self.secret_key, &iv).unwrap();
         let data = std::str::from_utf8(&decrypted).unwrap();
 
         Ok(data.to_string())

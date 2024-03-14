@@ -1,14 +1,14 @@
 use crate::rest::gate::endpoints::MonetixGateEndpoint;
 use crate::rest::errors::Error;
 use crate::rest::gate::models::{MonetixCreateInvoicePaymentRequest, MonetixCreateInvoicePaymentResponse, MonetixCustomerModel, MonetixGeneralModel, MonetixPaymentModel, MonetixReturnUrlModel};
-use crate::rest::gate::signer::{MonetixRequest, MonetixGateSigner};
+use crate::rest::signer::{MonetixRequest, MonetixSigner};
 use reqwest::header::{HeaderMap, HeaderValue};
 use serde::de::DeserializeOwned;
 use std::collections::HashMap;
 
 #[derive(Clone)]
 pub struct MonetixGateRestClient {
-    signer: MonetixGateSigner,
+    signer: MonetixSigner,
     host: String,
     inner_client: reqwest::Client,
     project_id: u32,
@@ -24,7 +24,7 @@ impl MonetixGateRestClient {
         callback_url: Option<String>,
     ) -> Self {
         Self {
-            signer: MonetixGateSigner::new(secret_key),
+            signer: MonetixSigner::new(secret_key),
             host: "https://api.trxhost.com".to_string(),
             inner_client: reqwest::Client::new(),
             project_id,

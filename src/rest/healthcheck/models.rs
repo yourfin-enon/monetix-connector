@@ -1,5 +1,5 @@
 use serde_derive::{Deserialize, Serialize};
-use crate::rest::gate::signer::MonetixRequest;
+use crate::rest::signer::MonetixRequest;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct GetPaymentUrlArgs {

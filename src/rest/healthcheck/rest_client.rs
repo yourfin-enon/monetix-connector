@@ -1,14 +1,14 @@
 use crate::rest::errors::Error;
 use reqwest::header::{HeaderMap, HeaderValue};
-use crate::rest::gate::signer::MonetixGateSigner;
+use crate::rest::signer::MonetixSigner;
 use crate::rest::healthcheck::endpoints::MonetixHealthcheckEndpoint;
 use crate::rest::healthcheck::models::GetPaymentUrlArgs;
-use crate::rest::healthcheck::cipher::MonetixHealthcheckCipher;
+use crate::rest::cipher::MonetixCipher;
 
 #[derive(Clone)]
 pub struct MonetixHealthcheckRestClient {
-    cipher: MonetixHealthcheckCipher,
-    signer: MonetixGateSigner,
+    cipher: MonetixCipher,
+    signer: MonetixSigner,
     host: String,
     inner_client: reqwest::Client,
     project_id: u32,
@@ -22,8 +22,8 @@ impl MonetixHealthcheckRestClient {
         api_url: impl Into<String>,
     ) -> Self {
         Self {
-            cipher: MonetixHealthcheckCipher::new(encryption_key),
-            signer: MonetixGateSigner::new(secret_key),
+            cipher: MonetixCipher::new(encryption_key),
+            signer: MonetixSigner::new(secret_key),
             host: api_url.into(),
             inner_client: reqwest::Client::new(),
             project_id,
