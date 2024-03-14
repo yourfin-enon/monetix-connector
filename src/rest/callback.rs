@@ -128,7 +128,7 @@ pub struct MonetixBankModel {
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct MonetixCallbackCustomerModel {
     pub id: String,
-    pub ip_address: String,
+    pub ip_address: Option<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
