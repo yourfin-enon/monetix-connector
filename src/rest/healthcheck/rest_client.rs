@@ -2,7 +2,7 @@ use crate::rest::errors::Error;
 use reqwest::header::{HeaderMap, HeaderValue};
 use crate::rest::signer::MonetixSigner;
 use crate::rest::healthcheck::endpoints::MonetixHealthcheckEndpoint;
-use crate::rest::healthcheck::models::GetPaymentUrlArgs;
+use crate::rest::healthcheck::models::{GetPaymentUrlArgs, PaymentUrlConfig};
 use crate::rest::cipher::MonetixCipher;
 
 #[derive(Clone)]
@@ -47,6 +47,29 @@ impl MonetixHealthcheckRestClient {
         let url = format!("{}/{}/{}", host, self.project_id, encrypted);
 
         Ok(url)
+    }
+
+    pub async fn get_payment_url_config(&self, args: GetPaymentUrlArgs) -> Result<PaymentUrlConfig, Error> {
+        let host = self.get_payment_host().await?;
+        let query = serde_qs::to_string(&args).unwrap();
+        let endpoint = MonetixHealthcheckEndpoint::PaymentUrl;
+        let signature = self.signer.generate_sign(&args)?;
+        let args_string = format!("{}?{}&signature={}", String::from(&endpoint), query, signature);
+        let encrypted_data = self.cipher.encrypt(&args_string)?;
+        
+        Ok(PaymentUrlConfig {
+            host,
+            signature,
+            encrypted_data,
+            payment_id: args.payment_id,
+            payment_amount: args.payment_amount,
+            payment_currency: args.payment_currency,
+            project_id: args.project_id,
+            customer_id: args.customer_id,
+            customer_first_name: args.customer_first_name,
+            customer_last_name: args.customer_last_name,
+            customer_email: args.customer_email,
+        })
     }
 
     pub async fn get_payment_sign(&self, args: GetPaymentUrlArgs) -> Result<String, Error> {
