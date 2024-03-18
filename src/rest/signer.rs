@@ -35,6 +35,10 @@ impl MonetixSigner {
     pub fn generate_sign_from_str(&self, data: &str) -> Result<String, String> {
         let data = MonetixSigner::convert_to_sign_string(data)?;
 
+        if std::env::var("DEBUG").is_ok() {
+            println!("debug->sign_string: {}", data);
+        }
+
         Ok(self.sign_str(&data))
     }
 
