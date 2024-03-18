@@ -90,12 +90,12 @@ impl MonetixCipher {
 
 #[cfg(test)]
 mod tests {
-    use crate::rest::healthcheck::cipher::MonetixHealthcheckCipher;
+    use crate::rest::cipher::MonetixCipher;
 
     #[test]
     fn encrypt_1() {
         let data = "/payment?project_id=123&payment_amount=100&payment_id=payment_47&payment_currency=USD&customer_id=customer_123&customer_first_name=John&customer_last_6name=Doe&customer_email=johndoe%40example.com&signature=YWb6Z20ByxpQ%2B30hfTIjaCCsVIwVynXV%252BVLe";
-        let cipher = MonetixHealthcheckCipher {
+        let cipher = MonetixCipher {
             secret_key: "secret".to_string(),
         };
         let result = cipher.encrypt(data).unwrap();

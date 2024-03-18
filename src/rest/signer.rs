@@ -99,9 +99,9 @@ impl MonetixSigner {
 
                 for (inner_key, inner_value) in value.iter() {
                     if let Some(part) =
-                        MonetixSigner::key_value_to_string(inner_key, inner_value)
+                        MonetixSigner::key_value_to_string(&format!("{}:{}", key, inner_key), inner_value)
                     {
-                        parts.push(format!("{}:{}", key, part));
+                        parts.push(part);
                     }
                 }
 
@@ -173,6 +173,23 @@ mod tests {
         let result = MonetixSigner::convert_to_sign_string(json).unwrap();
 
         assert_eq!(result, "object:is_false:false;object:is_true:true");
+    }
+
+    #[test]
+    fn convert_to_sign_string_double_object_double_fields() {
+        let json = r#"
+        {
+    "operation": {
+        "sum_initial": {
+            "amount": 10,
+            "currency": "USD"
+        }
+    },
+    "signature": "IvyzxypTVp\/8LLVImQGyghpUqA0T7ripi8aNmxVSjoqYm8k2G7VmNkFAMoISUuG6lz1AGIVUh6ilvhtIYhan2Q=="
+}"#;
+        let result = MonetixSigner::convert_to_sign_string(json).unwrap();
+
+        assert_eq!(result, "operation:sum_initial:amount:10;operation:sum_initial:currency:USD");
     }
 
     #[test]
