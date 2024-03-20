@@ -145,6 +145,10 @@ pub struct MonetixCallbackPaymentModel {
     pub status: String,
     #[serde(rename = "type")]
     pub payment_type: String,
+    pub sum: MonetixSumModel,
+    pub description: Option<String>,
+    pub method: Option<String>,
+    pub date: String,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
