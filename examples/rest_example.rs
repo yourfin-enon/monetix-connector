@@ -3,6 +3,7 @@ use monetix_connector::rest::gate::rest_client::MonetixGateRestClient;
 use monetix_connector::rest::healthcheck::models::GetPaymentUrlArgs;
 use monetix_connector::rest::healthcheck::rest_client::MonetixHealthcheckRestClient;
 use uuid::Uuid;
+use monetix_connector::rest::payment_page::PaymentPage;
 
 #[tokio::main]
 async fn main() {
@@ -17,7 +18,7 @@ async fn main() {
 
     let result = client.get_payment_host().await;
 
-    println!("get_payment_host: {:?}", result);
+    //println!("get_payment_host: {:?}", result);
 
     let payment_args = GetPaymentUrlArgs {
         payment_id: format!("test-{}", Uuid::new_v4()),
@@ -30,13 +31,21 @@ async fn main() {
         customer_email: "test@test.com".to_string(),
     };
 
-    println!("{:?}", payment_args);
+    //println!("{:?}", payment_args);
     let result = client.get_payment_sign(payment_args.clone()).await;
 
-    println!("get_payment_sign: {:?}", result);
+    //println!("get_payment_sign: {:?}", result);
 
-    let result = client.get_payment_url(payment_args).await;
-    println!("get_payment_url: {:?}", result);
+    let result = client.get_payment_url(payment_args.clone()).await;
+    //println!("get_payment_url: {:?}", result);
+    
+    let result = client.get_payment_page_config(payment_args).await;
+    //println!("get_payment_page_config: {:?}", result);
+    
+    let payment_page = PaymentPage::new(result.unwrap());
+    
+    println!("{}", payment_page.to_html());
+/*
 
     let gate_client = MonetixGateRestClient::new(
         project_id,
@@ -62,4 +71,5 @@ async fn main() {
         .await;
 
     println!("{:?}", result);
+ */
 }

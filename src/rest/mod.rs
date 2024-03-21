@@ -6,3 +6,4 @@ pub mod healthcheck;
 pub mod response_handler;
 pub mod cipher;
 pub mod signer;
+pub mod payment_page;

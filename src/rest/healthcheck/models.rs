@@ -14,7 +14,7 @@ pub struct GetPaymentUrlArgs {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct PaymentUrlConfig {
+pub struct PaymentPageConfig {
     pub host: String,
     pub signature: String,
     pub encrypted_data: String,

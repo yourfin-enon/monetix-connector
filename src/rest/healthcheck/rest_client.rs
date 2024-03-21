@@ -2,7 +2,7 @@ use crate::rest::errors::Error;
 use reqwest::header::{HeaderMap, HeaderValue};
 use crate::rest::signer::MonetixSigner;
 use crate::rest::healthcheck::endpoints::MonetixHealthcheckEndpoint;
-use crate::rest::healthcheck::models::{GetPaymentUrlArgs, PaymentUrlConfig};
+use crate::rest::healthcheck::models::{GetPaymentUrlArgs, PaymentPageConfig};
 use crate::rest::cipher::MonetixCipher;
 
 #[derive(Clone)]
@@ -49,7 +49,7 @@ impl MonetixHealthcheckRestClient {
         Ok(url)
     }
 
-    pub async fn get_payment_url_config(&self, args: GetPaymentUrlArgs) -> Result<PaymentUrlConfig, Error> {
+    pub async fn get_payment_page_config(&self, args: GetPaymentUrlArgs) -> Result<PaymentPageConfig, Error> {
         let host = self.get_payment_host().await?;
         let query = serde_qs::to_string(&args).unwrap();
         let endpoint = MonetixHealthcheckEndpoint::PaymentUrl;
@@ -57,7 +57,7 @@ impl MonetixHealthcheckRestClient {
         let args_string = format!("{}?{}&signature={}", String::from(&endpoint), query, signature);
         let encrypted_data = self.cipher.encrypt(&args_string)?;
         
-        Ok(PaymentUrlConfig {
+        Ok(PaymentPageConfig {
             host,
             signature,
             encrypted_data,
