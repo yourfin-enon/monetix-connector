@@ -1,6 +1,6 @@
 use monetix_connector::rest::gate::models::MonetixPaymentModel;
 use monetix_connector::rest::gate::rest_client::MonetixGateRestClient;
-use monetix_connector::rest::healthcheck::models::GetPaymentUrlArgs;
+use monetix_connector::rest::healthcheck::models::GetPaymentPageArgs;
 use monetix_connector::rest::healthcheck::rest_client::MonetixHealthcheckRestClient;
 use uuid::Uuid;
 use monetix_connector::rest::payment_page::PaymentPage;
@@ -20,7 +20,7 @@ async fn main() {
 
     //println!("get_payment_host: {:?}", result);
 
-    let payment_args = GetPaymentUrlArgs {
+    let payment_args = GetPaymentPageArgs {
         payment_id: format!("test-{}", Uuid::new_v4()),
         payment_amount: 10,
         payment_currency: "USD".to_string(),

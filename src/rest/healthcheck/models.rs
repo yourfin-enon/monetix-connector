@@ -2,7 +2,7 @@ use serde_derive::{Deserialize, Serialize};
 use crate::rest::signer::MonetixRequest;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct GetPaymentUrlArgs {
+pub struct GetPaymentPageArgs {
     pub payment_id: String,
     pub payment_amount: u64,
     pub payment_currency: String,
@@ -29,4 +29,4 @@ pub struct PaymentPageConfig {
 }
 
 
-impl MonetixRequest for GetPaymentUrlArgs {}
+impl MonetixRequest for GetPaymentPageArgs {}
