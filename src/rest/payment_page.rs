@@ -1,14 +1,14 @@
 use crate::rest::healthcheck::models::PaymentPageConfig;
 
 pub struct PaymentPage {
-    html_template: String,
+    html_template: &'static str,
     config: PaymentPageConfig,
 }
 
 impl PaymentPage {
     pub fn new(config: PaymentPageConfig) -> Self {
         Self {
-            html_template: r#"<html><head><link rel="stylesheet" href="TEMPLATE_PAYMENT_HOST/shared/merchant.css"><script src="TEMPLATE_PAYMENT_HOST/shared/merchant.js"></script></head><body><div class="container"><div class="cart-info">...</div><div id="widget-container"></div></div><script type="text/javascript">var configObj={payment_id:"TEMPLATE_PAYMENT_ID",payment_amount:TEMPLATE_PAYMENT_AMOUNT,payment_currency:"TEMPLATE_PAYMENT_CURRENCY",project_id:TEMPLATE_PROJECT_ID,customer_id:"TEMPLATE_CUSTOMER_ID",customer_first_name:"TEMPLATE_CUSTOMER_FIRST_NAME",customer_last_name:"TEMPLATE_CUSTOMER_LAST_NAME",customer_email:"TEMPLATE_CUSTOMER_EMAIL",target_element:"widget-container",signature:"TEMPLATE_SIGNATURE"},widget=EPayWidget.create(configObj),url=widget.buildUrl(),encryptedUrl="/TEMPLATE_PROJECT_ID/TEMPLATE_ENCRYPTED_DATA";widget.setEncryptedURL(encryptedUrl).run()</script></body></html>"#.to_string(),
+            html_template: "<html><head><link rel='stylesheet' href='TEMPLATE_PAYMENT_HOST/shared/merchant.css'><script src='TEMPLATE_PAYMENT_HOST/shared/merchant.js'></script></head><body><div class='container'><div class='cart-info'>...</div><div id='widget-container'></div></div><script type='text/javascript'>var configObj={payment_id:'TEMPLATE_PAYMENT_ID',payment_amount:TEMPLATE_PAYMENT_AMOUNT,payment_currency:'TEMPLATE_PAYMENT_CURRENCY',project_id:TEMPLATE_PROJECT_ID,customer_id:'TEMPLATE_CUSTOMER_ID',customer_first_name:'TEMPLATE_CUSTOMER_FIRST_NAME',customer_last_name:'TEMPLATE_CUSTOMER_LAST_NAME',customer_email:'TEMPLATE_CUSTOMER_EMAIL',target_element:'widget-container',signature:'TEMPLATE_SIGNATURE'},widget=EPayWidget.create(configObj),url=widget.buildUrl(),encryptedUrl='/TEMPLATE_PROJECT_ID/TEMPLATE_ENCRYPTED_DATA';widget.setEncryptedURL(encryptedUrl).run()</script></body></html>",
             config,
         }
     }
