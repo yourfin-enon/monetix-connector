@@ -1,6 +1,6 @@
 [package]
 name = "monetix-connector"
-version = "0.6.5"
+version = "0.6.6"
 edition = "2021"
 authors = ["gorin <mxmgorin@gmail.com>"]
 
@@ -34,3 +34,4 @@ uuid = { version = "1.7.0", features = ["v4"] }
 aes = "*"
 libaes = "*"
 rand = "*"
+urlencoding = "*"

@@ -54,7 +54,9 @@ impl MonetixHealthcheckRestClient {
         let query = serde_qs::to_string(&args).unwrap();
         let endpoint = MonetixHealthcheckEndpoint::PaymentUrl;
         let signature = self.signer.generate_sign(&args)?;
+        let signature = urlencoding::encode(&signature).to_string();
         let args_string = format!("{}?{}&signature={}", String::from(&endpoint), query, signature);
+        println!("{}", args_string);
         let encrypted_data = self.cipher.encrypt(&args_string)?;
         
         Ok(PaymentPageConfig {
