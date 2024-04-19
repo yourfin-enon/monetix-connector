@@ -21,7 +21,7 @@ async fn main() {
     //println!("get_payment_host: {:?}", result);
 
     let payment_args = GetPaymentPageArgs {
-        payment_id: format!("test-{}", Uuid::new_v4()),
+        payment_id: format!("test:{}", Uuid::new_v4()),
         payment_amount: 10,
         payment_currency: "USD".to_string(),
         project_id,
