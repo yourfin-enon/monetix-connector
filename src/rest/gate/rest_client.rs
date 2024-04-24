@@ -5,6 +5,7 @@ use crate::rest::signer::{MonetixRequest, MonetixSigner};
 use reqwest::header::{HeaderMap, HeaderValue};
 use serde::de::DeserializeOwned;
 use std::collections::HashMap;
+use crate::rest::gate::payout::{MonetixCustomerAccountModel, MonetixCustomerPayoutModel, MonetixPayoutPaymentModel, MonetixPayoutRequest};
 
 #[derive(Clone)]
 pub struct MonetixGateRestClient {
@@ -76,6 +77,35 @@ impl MonetixGateRestClient {
         request.general.signature = sign;
 
         let endpoint = MonetixGateEndpoint::CreateInvoicePayment;
+        let result = self.post(endpoint, request).await;
+
+        result
+    }
+
+    pub async fn make_payout(
+        &self,
+        payment_id: impl Into<String>,
+        payment_method: impl Into<String>,
+        customer: MonetixCustomerPayoutModel,
+        account: MonetixCustomerAccountModel,
+        payment: MonetixPayoutPaymentModel,
+    ) -> Result<MonetixCreateInvoicePaymentResponse, Error> {
+        let mut request = MonetixPayoutRequest {
+            general: MonetixGeneralModel {
+                project_id: self.project_id,
+                payment_id: payment_id.into(),
+                merchant_callback_url: self.callback_url.clone(),
+                signature: "".to_string(),
+            },
+            customer,
+            account,
+            payment,          
+        };
+        let sign = self.signer.generate_sign(&request)?;
+
+        request.general.signature = sign;
+
+        let endpoint = MonetixGateEndpoint::MakePayout(payment_method.into());
         let result = self.post(endpoint, request).await;
 
         result

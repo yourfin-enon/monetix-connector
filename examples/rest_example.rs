@@ -1,12 +1,59 @@
 use monetix_connector::rest::gate::models::MonetixPaymentModel;
+use monetix_connector::rest::gate::payout::{
+    MonetixCustomerAccountModel, MonetixCustomerIdentifyModel, MonetixCustomerPayoutModel,
+    MonetixPayoutPaymentModel,
+};
 use monetix_connector::rest::gate::rest_client::MonetixGateRestClient;
 use monetix_connector::rest::healthcheck::models::GetPaymentPageArgs;
 use monetix_connector::rest::healthcheck::rest_client::MonetixHealthcheckRestClient;
-use uuid::Uuid;
 use monetix_connector::rest::payment_page::PaymentPage;
+use uuid::Uuid;
 
 #[tokio::main]
 async fn main() {
+    make_payout().await;
+}
+
+pub async fn make_payout() {
+    let project_id = std::env::var("PROJECT_ID").unwrap().parse().unwrap();
+    let secret_key = std::env::var("SECRET_KEY").unwrap();
+    let callback_url = std::env::var("CALLBACK_URL").ok();
+
+    let gate_client = MonetixGateRestClient::new(
+        project_id,
+        secret_key,
+        "google.com".to_string(),
+        callback_url,
+    );
+    let payment_id = format!("test-{}", Uuid::new_v4());
+    let customer = MonetixCustomerPayoutModel {
+        id: "test-customer".to_string(),
+        ip_address: "192.168.1.1".to_string(),
+        first_name: "test".to_string(),
+        last_name: "test".to_string(),
+        identify: MonetixCustomerIdentifyModel {
+            doc_type: "CURP".to_string(),
+            doc_number: "123456789123456789".to_string(),
+        },
+        email: "fadfadfdassf@gmail.com".to_string(),
+    };
+    let account = MonetixCustomerAccountModel {
+        account_type: "PHONE".to_string(),
+        bank_id: None,
+        number: "380506666666".to_string(),
+    };
+    let payment = MonetixPayoutPaymentModel {
+        amount: 1000000,
+        currency: "MXN".to_string(),
+    };
+
+    let result = gate_client
+        .make_payout(payment_id, "spei", customer, account, payment)
+        .await;
+    println!("{:?}", result);
+}
+
+pub async fn payment_page() {
     let project_id = std::env::var("PROJECT_ID").unwrap().parse().unwrap();
     let secret_key = std::env::var("SECRET_KEY").unwrap();
     let callback_url = std::env::var("CALLBACK_URL").ok();
@@ -38,14 +85,19 @@ async fn main() {
 
     let result = client.get_payment_url(payment_args.clone()).await;
     //println!("get_payment_url: {:?}", result);
-    
+
     let result = client.get_payment_page_config(payment_args).await;
     //println!("get_payment_page_config: {:?}", result);
-    
+
     let payment_page = PaymentPage::new(result.unwrap());
-    
+
     println!("{}", payment_page.to_html());
-/*
+}
+
+pub async fn create_invoice() {
+    let project_id = std::env::var("PROJECT_ID").unwrap().parse().unwrap();
+    let secret_key = std::env::var("SECRET_KEY").unwrap();
+    let callback_url = std::env::var("CALLBACK_URL").ok();
 
     let gate_client = MonetixGateRestClient::new(
         project_id,
@@ -53,7 +105,6 @@ async fn main() {
         "google.com".to_string(),
         callback_url,
     );
-
     let result = gate_client
         .create_invoice_payment(
             format!("test-{}", Uuid::new_v4()),
@@ -71,5 +122,4 @@ async fn main() {
         .await;
 
     println!("{:?}", result);
- */
 }
