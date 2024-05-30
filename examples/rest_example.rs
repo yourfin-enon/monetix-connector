@@ -32,14 +32,14 @@ pub async fn make_payout() {
         first_name: "test".to_string(),
         last_name: "test".to_string(),
         identify: MonetixCustomerIdentifyModel {
-            doc_type: "CURP".to_string(),
+            doc_type: Some("CURP".to_string()),
             doc_number: "123456789123456789".to_string(),
         },
         email: "fadfadfdassf@gmail.com".to_string(),
     };
     let account = MonetixCustomerAccountModel {
-        account_type: Some("PHONE".to_string()),
-        bank_id: Some(65481),
+        account_type: None,
+        bank_id: None,
         number: "380506666666".to_string(),
     };
     let payment = MonetixPayoutPaymentModel {
@@ -47,8 +47,10 @@ pub async fn make_payout() {
         currency: "MXN".to_string(),
     };
 
+    let payment_method = "colombia"; // spei, nequi (has other endpoint), colombia
+
     let result = gate_client
-        .make_payout(payment_id, "spei", customer, account, payment)
+        .make_payout(payment_id, payment_method, customer, account, payment)
         .await;
     println!("{:?}", result);
 }

@@ -26,7 +26,7 @@ pub struct MonetixCustomerPayoutModel {
 pub struct MonetixCustomerIdentifyModel {
     /// CURP — при передаче в параметре doc_number идентификатора, который присваивается гражданам Мексики и иностранным гражданам, проживающим на территории Мексики (Clave Única de Registro de Población);
     /// RFC — при передаче в параметре doc_number идентификатора налогоплательщика в Мексике (Registro Federal de Contribuyentes).
-    pub doc_type: String,
+    pub doc_type: Option<String>,
     pub doc_number: String,
 }
 
