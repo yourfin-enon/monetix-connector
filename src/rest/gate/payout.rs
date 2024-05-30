@@ -36,8 +36,11 @@ pub struct MonetixCustomerAccountModel {
     /// PHONE — при передаче в параметре number номера телефона пользователя;
     /// DEBIT — при передаче в параметре number номера платежной карты пользователя.
     #[serde(rename = "type")]
-    pub account_type: String,
+    pub account_type: Option<String>,
     pub bank_id: Option<i32>,
+    /// реквизиты для выполнения выплаты пользователю, тип реквизитов должен соответствовать типу, 
+    /// переданному в параметре type. Если вам не нужно передавать параметр type, передавайте в 
+    /// параметре number номер счета CLABE получателя выплаты;
     pub number: String,
 }
 
