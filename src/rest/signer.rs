@@ -32,13 +32,13 @@ impl MonetixSigner {
         if std::env::var("MONETIX_DEBUG").is_ok() {
             println!("MONETIX_DEBUG->sign_string: {}", data);
         }
-        
+
         Ok(self.sign_str(&data))
     }
 
     pub fn generate_sign_from_str(&self, data: &str) -> Result<String, String> {
         let data = MonetixSigner::convert_to_sign_string(data)?;
-        
+
         if std::env::var("MONETIX_DEBUG").is_ok() {
             println!("MONETIX_DEBUG->sign_string: {}", data);
         }
@@ -61,11 +61,14 @@ impl MonetixSigner {
 
         for (key, value) in values_by_keys {
             if let Some(part) = MonetixSigner::key_value_to_string(key, value) {
-                parts.push(part);
+                if !part.is_empty() {
+                    parts.push(part);
+                }
             }
         }
 
         parts.sort();
+
         Ok(parts.join(";"))
     }
 
@@ -77,7 +80,7 @@ impl MonetixSigner {
     }
 
     fn key_value_to_string(key: &str, value: &Value) -> Option<String> {
-        if key == "signature" || value.to_string().contains("signature") {
+        if key.contains("signature") {
             return None;
         }
 
