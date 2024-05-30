@@ -38,8 +38,8 @@ pub async fn make_payout() {
         email: "fadfadfdassf@gmail.com".to_string(),
     };
     let account = MonetixCustomerAccountModel {
-        account_type: "PHONE".to_string(),
-        bank_id: None,
+        account_type: Some("PHONE".to_string()),
+        bank_id: Some(65481),
         number: "380506666666".to_string(),
     };
     let payment = MonetixPayoutPaymentModel {
