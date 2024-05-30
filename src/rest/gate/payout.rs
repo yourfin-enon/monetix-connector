@@ -1,4 +1,4 @@
-use crate::rest::gate::models::{MonetixCreateInvoicePaymentRequest, MonetixGeneralModel};
+use crate::rest::gate::models::{MonetixGeneralModel};
 use crate::rest::signer::MonetixRequest;
 use serde_derive::{Deserialize, Serialize};
 
