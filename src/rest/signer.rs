@@ -29,12 +29,16 @@ impl MonetixSigner {
 
         let data = MonetixSigner::convert_to_sign_string(&data)?;
 
+        if std::env::var("MONETIX_DEBUG").is_ok() {
+            println!("MONETIX_DEBUG->sign_string: {}", data);
+        }
+        
         Ok(self.sign_str(&data))
     }
 
     pub fn generate_sign_from_str(&self, data: &str) -> Result<String, String> {
         let data = MonetixSigner::convert_to_sign_string(data)?;
-
+        
         if std::env::var("MONETIX_DEBUG").is_ok() {
             println!("MONETIX_DEBUG->sign_string: {}", data);
         }
@@ -73,7 +77,7 @@ impl MonetixSigner {
     }
 
     fn key_value_to_string(key: &str, value: &Value) -> Option<String> {
-        if key == "signature" {
+        if key == "signature" || value.to_string().contains("signature") {
             return None;
         }
 
@@ -135,7 +139,7 @@ mod tests {
         let json = r#"
         {
             "name": "John Doe",
-            "signature": "sfdfds",
+            "general": {"signature": "sfdfds"},
             "last_name": null,
             "middle_name": "",
             "age": 43,
