@@ -10,7 +10,11 @@ impl From<&MonetixGateEndpoint> for String {
         match item {
             MonetixGateEndpoint::CreateInvoicePayment => "/v2/payment/invoice/create".to_string(),
             MonetixGateEndpoint::MakePayout(payment_method) => {
-                format!("/v2/payment/bank-transfer/{payment_method}/payout")
+                if payment_method == "nequi" {
+                    format!("/v2/payment/wallet/{payment_method}/payout")
+                } else {
+                    format!("/v2/payment/bank-transfer/{payment_method}/payout")
+                }
             }
         }
     }
