@@ -11,33 +11,7 @@ use uuid::Uuid;
 
 #[tokio::main]
 async fn main() {
-    make_card_payout().await;
-}
-
-pub async fn make_card_payout() {
-    let project_id = std::env::var("PROJECT_ID").unwrap().parse().unwrap();
-    let secret_key = std::env::var("SECRET_KEY").unwrap();
-    let callback_url = std::env::var("CALLBACK_URL").ok();
-
-    let gate_client = MonetixGateRestClient::new(
-        project_id,
-        secret_key,
-        "google.com".to_string(),
-        callback_url,
-    );
-    let customer = create_customer_model();
-    let card = MonetixCardModel {
-        pan: "4000000000000077".to_string(),
-    };
-    let payment = MonetixPayoutPaymentModel {
-        amount: 1000000,
-        currency: "MXN".to_string(),
-    };
-
-    let result = gate_client
-        .make_card_payout(generate_payment_id(), customer, card, payment)
-        .await;
-    println!("{:?}", result);
+    make_payout().await;
 }
 
 pub async fn make_payout() {
@@ -55,14 +29,14 @@ pub async fn make_payout() {
     let account = MonetixCustomerAccountModel {
         account_type: None,
         bank_id: None,
-        number: "380506666666".to_string(),
+        number: "4000000000000077".to_string(),
     };
     let payment = MonetixPayoutPaymentModel {
         amount: 1000000,
         currency: "MXN".to_string(),
     };
 
-    let payment_method = "colombia"; // spei, nequi (has other endpoint), colombia
+    let payment_method = "card"; // card, spei, nequi (has other endpoint), colombia
 
     let result = gate_client
         .make_payout(

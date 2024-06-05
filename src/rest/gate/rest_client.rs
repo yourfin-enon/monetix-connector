@@ -118,23 +118,42 @@ impl MonetixGateRestClient {
         account: MonetixCustomerAccountModel,
         payment: MonetixPayoutPaymentModel,
     ) -> Result<MonetixCreateInvoicePaymentResponse, Error> {
-        let mut request = MonetixPayoutRequest {
-            general: MonetixGeneralModel {
-                project_id: self.project_id,
-                payment_id: payment_id.into(),
-                merchant_callback_url: self.callback_url.clone(),
-                signature: "".to_string(),
-            },
-            customer,
-            account,
-            payment,          
+        let payment_method = payment_method.into();
+        let endpoint = MonetixGateEndpoint::MakePayout(payment_method.clone());
+
+        let result = if payment_method == "card" {
+            let mut request = MonetixCardPayoutRequest {
+                general: MonetixGeneralModel {
+                    project_id: self.project_id,
+                    payment_id: payment_id.into(),
+                    merchant_callback_url: self.callback_url.clone(),
+                    signature: "".to_string(),
+                },
+                customer,
+                payment,
+                card: MonetixCardModel { pan: account.number },
+            };
+            let sign = self.signer.generate_sign(&request)?;
+            request.general.signature = sign;
+
+            self.post(endpoint, request).await
+        } else {
+            let mut request = MonetixPayoutRequest {
+                general: MonetixGeneralModel {
+                    project_id: self.project_id,
+                    payment_id: payment_id.into(),
+                    merchant_callback_url: self.callback_url.clone(),
+                    signature: "".to_string(),
+                },
+                customer,
+                account,
+                payment,
+            };
+            let sign = self.signer.generate_sign(&request)?;
+            request.general.signature = sign;
+
+            self.post(endpoint, request).await
         };
-        let sign = self.signer.generate_sign(&request)?;
-
-        request.general.signature = sign;
-
-        let endpoint = MonetixGateEndpoint::MakePayout(payment_method.into());
-        let result = self.post(endpoint, request).await;
 
         result
     }
