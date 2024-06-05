@@ -2,6 +2,21 @@ use crate::rest::gate::models::{MonetixGeneralModel};
 use crate::rest::signer::MonetixRequest;
 use serde_derive::{Deserialize, Serialize};
 
+impl MonetixRequest for MonetixCardPayoutRequest {}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct MonetixCardPayoutRequest {
+    pub general: MonetixGeneralModel,
+    pub customer: MonetixCustomerPayoutModel,
+    pub payment: MonetixPayoutPaymentModel,
+    pub card: MonetixCardModel,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct MonetixCardModel {
+    pub pan: String,
+}
+
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct MonetixPayoutRequest {
     pub general: MonetixGeneralModel,

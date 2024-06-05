@@ -1,7 +1,7 @@
 use monetix_connector::rest::gate::models::MonetixPaymentModel;
 use monetix_connector::rest::gate::payout::{
-    MonetixCustomerAccountModel, MonetixCustomerIdentifyModel, MonetixCustomerPayoutModel,
-    MonetixPayoutPaymentModel,
+    MonetixCardModel, MonetixCustomerAccountModel, MonetixCustomerIdentifyModel,
+    MonetixCustomerPayoutModel, MonetixPayoutPaymentModel,
 };
 use monetix_connector::rest::gate::rest_client::MonetixGateRestClient;
 use monetix_connector::rest::healthcheck::models::GetPaymentPageArgs;
@@ -11,7 +11,33 @@ use uuid::Uuid;
 
 #[tokio::main]
 async fn main() {
-    make_payout().await;
+    make_card_payout().await;
+}
+
+pub async fn make_card_payout() {
+    let project_id = std::env::var("PROJECT_ID").unwrap().parse().unwrap();
+    let secret_key = std::env::var("SECRET_KEY").unwrap();
+    let callback_url = std::env::var("CALLBACK_URL").ok();
+
+    let gate_client = MonetixGateRestClient::new(
+        project_id,
+        secret_key,
+        "google.com".to_string(),
+        callback_url,
+    );
+    let customer = create_customer_model();
+    let card = MonetixCardModel {
+        pan: "4000000000000077".to_string(),
+    };
+    let payment = MonetixPayoutPaymentModel {
+        amount: 1000000,
+        currency: "MXN".to_string(),
+    };
+
+    let result = gate_client
+        .make_card_payout(generate_payment_id(), customer, card, payment)
+        .await;
+    println!("{:?}", result);
 }
 
 pub async fn make_payout() {
@@ -25,18 +51,7 @@ pub async fn make_payout() {
         "google.com".to_string(),
         callback_url,
     );
-    let payment_id = format!("test-{}", Uuid::new_v4());
-    let customer = MonetixCustomerPayoutModel {
-        id: "test-customer".to_string(),
-        ip_address: "192.168.1.1".to_string(),
-        first_name: "test".to_string(),
-        last_name: "test".to_string(),
-        identify: MonetixCustomerIdentifyModel {
-            doc_type: Some("CURP".to_string()),
-            doc_number: "123456789123456789".to_string(),
-        },
-        email: "fadfadfdassf@gmail.com".to_string(),
-    };
+    let customer = create_customer_model();
     let account = MonetixCustomerAccountModel {
         account_type: None,
         bank_id: None,
@@ -50,7 +65,13 @@ pub async fn make_payout() {
     let payment_method = "colombia"; // spei, nequi (has other endpoint), colombia
 
     let result = gate_client
-        .make_payout(payment_id, payment_method, customer, account, payment)
+        .make_payout(
+            generate_payment_id(),
+            payment_method,
+            customer,
+            account,
+            payment,
+        )
         .await;
     println!("{:?}", result);
 }
@@ -70,7 +91,7 @@ pub async fn payment_page() {
     //println!("get_payment_host: {:?}", result);
 
     let payment_args = GetPaymentPageArgs {
-        payment_id: format!("test-{}", Uuid::new_v4()),
+        payment_id: generate_payment_id(),
         payment_amount: 10,
         payment_currency: "USD".to_string(),
         project_id,
@@ -124,4 +145,22 @@ pub async fn create_invoice() {
         .await;
 
     println!("{:?}", result);
+}
+
+pub fn create_customer_model() -> MonetixCustomerPayoutModel {
+    MonetixCustomerPayoutModel {
+        id: "test-customer".to_string(),
+        ip_address: "192.168.1.1".to_string(),
+        first_name: "test".to_string(),
+        last_name: "test".to_string(),
+        identify: MonetixCustomerIdentifyModel {
+            doc_type: Some("CURP".to_string()),
+            doc_number: "123456789123456789".to_string(),
+        },
+        email: "fadfadfdassf@gmail.com".to_string(),
+    }
+}
+
+pub fn generate_payment_id() -> String {
+    format!("test:{}", Uuid::new_v4())
 }
