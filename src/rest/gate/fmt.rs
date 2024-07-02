@@ -28,10 +28,15 @@ pub fn into_minor_amount(amount: f64, minor_digits: usize) -> u64 {
     result.parse().unwrap()
 }
 
+pub fn from_minor_amount(amount_minor: i64, decimal_places: u32) -> f64 {
+    let divisor = 10_i64.pow(decimal_places);
+    amount_minor as f64 / divisor as f64
+}
+
 #[cfg(test)]
 mod tests {
     use rust_extensions::date_time::DateTimeAsMicroseconds;
-    use crate::rest::gate::fmt::{into_date_string, into_minor_amount};
+    use crate::rest::gate::fmt::{from_minor_amount, into_date_string, into_minor_amount};
 
     #[test]
     fn minor_amount_1() {
@@ -66,5 +71,35 @@ mod tests {
         let date_string = into_date_string(date);
 
         assert_eq!(date_string, "2024-03-11T18:21:23+00");
+    }
+
+    #[test]
+    fn test_from_minor_amount() {
+        // Test with amount_minor = 123456 and decimal_places = 2
+        let amount_minor = 123456_i64;
+        let decimal_places = 2_u32;
+        let expected_result = 1234.56_f64;
+        assert_eq!(
+            from_minor_amount(amount_minor, decimal_places),
+            expected_result
+        );
+
+        // Test with amount_minor = 100 and decimal_places = 3
+        let amount_minor = 100_i64;
+        let decimal_places = 3_u32;
+        let expected_result = 0.1_f64;
+        assert_eq!(
+            from_minor_amount(amount_minor, decimal_places),
+            expected_result
+        );
+
+        // Test with amount_minor = 999999 and decimal_places = 5
+        let amount_minor = 999999_i64;
+        let decimal_places = 5_u32;
+        let expected_result = 9.99999_f64;
+        assert_eq!(
+            from_minor_amount(amount_minor, decimal_places),
+            expected_result
+        );
     }
 }
