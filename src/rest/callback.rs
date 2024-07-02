@@ -148,7 +148,7 @@ pub struct MonetixCallbackPaymentModel {
     pub sum: MonetixSumModel,
     pub description: Option<String>,
     pub method: Option<String>,
-    pub date: String,
+    pub date: Option<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
