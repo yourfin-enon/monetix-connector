@@ -93,8 +93,9 @@ impl MonetixSigner {
                 let mut parts = Vec::with_capacity(value.len());
 
                 for (i, v) in value.iter().enumerate() {
-                    if let Some(part) = MonetixSigner::key_value_to_string(&i.to_string(), v) {
-                        parts.push(format!("{}:{}", key, part));
+                    let key = format!("{}:{}", key, i);
+                    if let Some(part) = MonetixSigner::key_value_to_string(&key, v) {
+                        parts.push(part);
                     }
                 }
 
@@ -105,6 +106,10 @@ impl MonetixSigner {
                 let mut parts = Vec::with_capacity(value.len());
 
                 for (inner_key, inner_value) in value.iter() {
+                    println!("{}", key);
+                    println!("{}", inner_key);
+                    println!("{}", inner_value);
+
                     if let Some(part) =
                         MonetixSigner::key_value_to_string(&format!("{}:{}", key, inner_key), inner_value)
                     {
@@ -247,5 +252,21 @@ mod tests {
 
         let _sign = signer.generate_sign(&request).unwrap();
         //assert_eq!(sign, "Y+5QpmclSM9RATg0IoXaOFYSPmpCgd+IV2k7jK2gHHChk/sL7H5dcjjR1gZ8gNV0vz9sNIqrOpQo/HcInJ1iTQ==");
+    }
+
+    #[test]
+    fn test_array_obj_1() {
+        let json = r#"
+{
+    "errors": [{
+            "field": "card.pan",
+            "message": "Invalid pan number"
+        }
+    ]    
+}
+"#;
+        let result = MonetixSigner::convert_to_sign_string(json).unwrap();
+
+        assert_eq!(result, "errors:0:field:card.pan;errors:0:message:Invalid pan number");
     }
 }
